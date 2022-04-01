@@ -3,6 +3,6 @@ Connect 4 is a two-player game in which the players first choose a color and the
 
 
 #Download grpahviz to be able to use trees
-use pip install graphviz in command window
-then download it from this
+use pip install graphviz in command window<br/> 
+then download it from this<br/> 
 https://graphviz.org/download/
