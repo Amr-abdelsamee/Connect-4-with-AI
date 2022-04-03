@@ -37,7 +37,7 @@ class MinMax:
         child, utility = self.maximize(state, 0)
         return child
 
-    def get_next_states(state, turn):  # turn is True for AI, False for Human
+    def get_next_states(self, state, turn):  # turn is True for AI, False for Human
         if turn:
             char = '2'
         else:
