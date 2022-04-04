@@ -15,9 +15,9 @@ class Circle:
         pygame.draw.circle(self.screen, self.color,(self.x_pos, self.y_pos), self.radius)
     
     # update used to update the block place called when exchange happens
-    def update(self, color, owner):
+    def update(self, color):
         self.color = color
-        self.player = owner
+        # self.player = owner
         self.draw()
 
     def change_pos(self, new_x_pos, new_y_pos):
