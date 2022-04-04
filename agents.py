@@ -1,27 +1,25 @@
-import math
-
-
 class MinMax:
     def __init__(self, depth, num_row, num_col):
         self.num_row = num_row
         self.num_col = num_col
-        self.tree = ''
+        self.tree = []
         self.state = ''
         self.depth = depth
         self.current_depth = 0
 
     def update(self, state):
         self.state = state
+        self.tree.clear()
 
     def calc_score(self, connected, index=0):
         if connected == 0:
             return 0
         if connected == 1:
-            if self.num_col - index == self.num_col - self.num_col/2:
+            if self.num_col - index == self.num_col - self.num_col / 2:
                 return 5
-            if 0 < index < self.num_col-1:
+            if 0 < index < self.num_col - 1:
                 return 3
-            else :
+            else:
                 return 1
         return pow(10, connected - 1)
 
@@ -35,7 +33,7 @@ class MinMax:
                 while j < self.num_col and state[i * self.num_col + j] == p:
                     connected += 1
                     j += 1
-                points += self.calc_score(connected, j-1)
+                points += self.calc_score(connected, j - 1)
                 connected = 0
         return points
 
@@ -66,7 +64,7 @@ class MinMax:
                     connected = 0
                 j += 1
                 i += 1
-            points += self.calc_score(connected, j-1)
+            points += self.calc_score(connected, j - 1)
             connected = 0
 
         for i in range(self.num_row):
@@ -81,7 +79,7 @@ class MinMax:
                     connected = 0
                 j += 1
                 i += 1
-            points += self.calc_score(connected, j-1)
+            points += self.calc_score(connected, j - 1)
             connected = 0
         return points
 
@@ -98,7 +96,7 @@ class MinMax:
                     connected = 0
                 j -= 1
                 i += 1
-            points += self.calc_score(connected, j+1)
+            points += self.calc_score(connected, j + 1)
             connected = 0
 
         for i in range(self.num_row):
@@ -112,7 +110,7 @@ class MinMax:
                     connected = 0
                 j -= 1
                 i += 1
-            points += self.calc_score(connected, j+1)
+            points += self.calc_score(connected, j + 1)
             connected = 0
         return points
 
@@ -130,25 +128,34 @@ class MinMax:
         return AI - player
 
     def maximize(self, state, d):
+        gp = []
         if d == self.depth:
             return None, 0, self.heu(state)
         max_child, max_column, max_utility = None, 0, float('-inf')
         children = self.get_next_states(state, True)
         for child, column in children:
             _, _, utility = self.minimize(child, d + 1)
+            node = (child, utility, 'maxGate')
+            gp.append(node)
             if utility > max_utility:
                 max_child, max_column, max_utility = child, column, utility
+
+        self.tree.append(gp)
         return max_child, max_column, max_utility
 
     def minimize(self, state, d):
+        gp = []
         if d == self.depth:
             return None, 0, self.heu(state)
         min_child, min_column, min_utility = None, 0, float('inf')
         children = self.get_next_states(state, False)
         for child, column in children:
             _, _, utility = self.maximize(child, d + 1)
+            node = (child, utility, 'minGate')
+            gp.append(node)
             if utility < min_utility:
                 min_child, min_column, min_utility = child, column, utility
+        self.tree.append(gp)
         return min_child, min_column, min_utility
 
     def decision(self):
@@ -191,4 +198,7 @@ class MinMax:
     def work(self, state):
         self.update(state)
         newState, column, tree = self.decision()
+        node = (state, 0, 'original')
+        tree.append(node)
+        tree.reverse()
         return newState, column, tree
