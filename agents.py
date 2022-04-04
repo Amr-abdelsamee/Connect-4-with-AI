@@ -6,10 +6,15 @@ class MinMax:
         self.state = ''
         self.depth = depth
         self.current_depth = 0
+        self.parent = 0
+        self.index = 0
 
     def update(self, state):
         self.state = state
         self.tree.clear()
+        self.parent = 0
+        self.index = 0
+        self.current_depth = 0
 
     def calc_score(self, connected, index=0):
         if connected == 0:
@@ -127,31 +132,36 @@ class MinMax:
         AI = self.get_points(state, '2')
         return AI - player
 
-    def maximize(self, state, d):
+    def maximize(self, state, d, p):
         gp = []
         if d == self.depth:
             return None, 0, self.heu(state)
         max_child, max_column, max_utility = None, 0, float('-inf')
         children = self.get_next_states(state, True)
+        self.index += len(children)
+        index = self.index
         for child, column in children:
-            _, _, utility = self.minimize(child, d + 1)
-            node = (child, utility, 'maxGate')
+            _, _, utility = self.minimize(child, d + 1, index)
+            node = (child, utility, 'maxGate', p, index)
+            index -= 1
             gp.append(node)
             if utility > max_utility:
                 max_child, max_column, max_utility = child, column, utility
-
         self.tree.append(gp)
         return max_child, max_column, max_utility
 
-    def minimize(self, state, d):
+    def minimize(self, state, d, p):
         gp = []
         if d == self.depth:
             return None, 0, self.heu(state)
         min_child, min_column, min_utility = None, 0, float('inf')
         children = self.get_next_states(state, False)
+        self.index += len(children)
+        index = self.index
         for child, column in children:
-            _, _, utility = self.maximize(child, d + 1)
-            node = (child, utility, 'minGate')
+            _, _, utility = self.maximize(child, d + 1, index)
+            node = (child, utility, 'minGate', p, index)
+            index -= 1
             gp.append(node)
             if utility < min_utility:
                 min_child, min_column, min_utility = child, column, utility
@@ -159,7 +169,7 @@ class MinMax:
         return min_child, min_column, min_utility
 
     def decision(self):
-        child, column, utility = self.maximize(self.state, 0)
+        child, column, utility = self.maximize(self.state, 0, 0)
         return child, column, self.tree
 
     def get_next_states(self, state, turn):  # turn is True for AI, False for Human
@@ -202,3 +212,4 @@ class MinMax:
         tree.append(node)
         tree.reverse()
         return newState, column, tree
+
