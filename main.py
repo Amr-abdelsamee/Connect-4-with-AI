@@ -6,8 +6,8 @@ from puzzle import Puzzle
 from circles import Circle
 from tree import Tree
 from buttons import Button
-from copy import copy
-
+from agents import MinMax
+# from copy import copy
 
 NUM_ROW = 6
 NUM_COL = 7
@@ -131,7 +131,6 @@ def tree_window(states):
     #         ["2",["2nd_state_child1","2nd_state_child2","2nd_state_child3","2nd_state_child4"]],
     #         ["3",["3rd_state_child"]],
     #         ["4",["4th_state_child1","4th_state_child3","4th_state_child4"]],
-    #         ["1st_state_child2",["5th_state_child1","4th_state_child3"]],
     #         ["6",["6th_state_child1","4th_state_child3"]],
     #         ["7",["7th_state_child1","4th_state_child3"]]
     #         ]
@@ -157,7 +156,8 @@ pygame.display.set_icon(icon)
 start_window()
 if start_players:
     puzzle = Puzzle(game_screen, NUM_ROW, NUM_COL, SCREEN_WIDTH, SCREEN_HEIGHT)
-
+    agent = MinMax(5, NUM_ROW, NUM_COL)
+    
     playing_circle = Circle(game_screen, puzzle.circles[0].x_pos, puzzle.circles[0].y_pos - puzzle.diameter-10, puzzle.player1_color, puzzle.diameter/2)
     playing_circle.draw()
 
@@ -174,16 +174,22 @@ if start_players:
                     clear_rect = pygame.Rect(0, 0, SCREEN_WIDTH, 140)
                     pygame.draw.rect(game_screen, BG_COLOR, clear_rect)
                     playing_circle.change_pos(x_hovered, puzzle.circles[0].y_pos - puzzle.diameter-10)
-
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            
+            playing_circle.update(puzzle.player1_color)
+            if puzzle.player_turn == puzzle.player1 and event.type == pygame.MOUSEBUTTONDOWN:
                 # store the coordinates of the clicked position
                 x_clicked, y_clicked = pygame.mouse.get_pos()
-
                 puzzle.play(x_clicked , y_clicked)
-                if puzzle.player_turn == '2': playing_circle.update(puzzle.player2_color, '0')
-                else: playing_circle.update(puzzle.player1_color, '0')
+                print("player1 turn and current turn is",puzzle.player_turn)
+                
+            if puzzle.player_turn == puzzle.player2:
+                playing_circle.update(puzzle.player2_color)
                 pygame.display.update()
-                # if puzzle.player_turn == '1': tree_window(copy(puzzle.states))
+                ai_state,_ = agent.work(puzzle.current_state)
+                puzzle.update_board(ai_state)
+                print("player2 turn and current turn is",puzzle.player_turn)
+                # tree_window(puzzle.current_state)
+            
 
             pygame.display.update()
 else:
