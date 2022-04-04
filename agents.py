@@ -1,5 +1,6 @@
 import math
 
+
 class MinMax:
     def __init__(self, depth, num_row, num_col):
         self.num_row = num_row
@@ -12,6 +13,32 @@ class MinMax:
     def update(self, state):
         self.state = state
 
+    def calc_score(self, connected, index=0):
+        if connected == 0:
+            return 0
+        if connected == 1:
+            if self.num_col - index == self.num_col - self.num_col/2:
+                return 5
+            if 0 < index < self.num_col-1:
+                return 3
+            else :
+                return 1
+        return pow(10, connected - 1)
+
+    def check_horiz(self, state, p):
+        points = 0
+        connected = 0
+        for i in range(self.num_row):
+            j = -1
+            while j < self.num_col:
+                j += 1
+                while j < self.num_col and state[i * self.num_col + j] == p:
+                    connected += 1
+                    j += 1
+                points += self.calc_score(connected, j-1)
+                connected = 0
+        return points
+
     def check_vert(self, state, p):
         points = 0
         connected = 0
@@ -22,8 +49,7 @@ class MinMax:
                 while j < self.num_row and state[j * self.num_col + i] == p:
                     connected += 1
                     j += 1
-                if connected > 3:
-                    points += connected - 3
+                points += self.calc_score(connected, i)
                 connected = 0
         return points
 
@@ -36,13 +62,11 @@ class MinMax:
                 if state[i * self.num_col + j] == p:
                     connected += 1
                 else:
-                    if connected > 3:
-                        points += connected - 3
+                    points += self.calc_score(connected, j)
                     connected = 0
                 j += 1
                 i += 1
-            if connected > 3:
-                points += connected - 3
+            points += self.calc_score(connected, j-1)
             connected = 0
 
         for i in range(self.num_row):
@@ -53,13 +77,11 @@ class MinMax:
                 if state[i * self.num_col + j] == p:
                     connected += 1
                 else:
-                    if connected > 3:
-                        points += connected - 3
+                    points += self.calc_score(connected, j)
                     connected = 0
                 j += 1
                 i += 1
-            if connected > 3:
-                points += connected - 3
+            points += self.calc_score(connected, j-1)
             connected = 0
         return points
 
@@ -72,13 +94,11 @@ class MinMax:
                 if state[i * self.num_col + j] == p:
                     connected += 1
                 else:
-                    if connected > 3:
-                        points += connected - 3
+                    points += self.calc_score(connected, j)
                     connected = 0
                 j -= 1
                 i += 1
-            if connected > 3:
-                points += connected - 3
+            points += self.calc_score(connected, j+1)
             connected = 0
 
         for i in range(self.num_row):
@@ -88,13 +108,11 @@ class MinMax:
                 if state[i * self.num_col + j] == p:
                     connected += 1
                 else:
-                    if connected > 3:
-                        points += connected - 3
+                    points += self.calc_score(connected, j)
                     connected = 0
                 j -= 1
                 i += 1
-            if connected > 3:
-                points += connected - 3
+            points += self.calc_score(connected, j+1)
             connected = 0
         return points
 
@@ -113,7 +131,7 @@ class MinMax:
 
     def maximize(self, state, d):
         if d == self.depth:
-            return None, self.heu(state)
+            return None, 0, self.heu(state)
         max_child, max_column, max_utility = None, 0, float('-inf')
         children = self.get_next_states(state, True)
         for child, column in children:
@@ -124,13 +142,13 @@ class MinMax:
 
     def minimize(self, state, d):
         if d == self.depth:
-            return None, self.heu(state)
+            return None, 0, self.heu(state)
         min_child, min_column, min_utility = None, 0, float('inf')
         children = self.get_next_states(state, False)
         for child, column in children:
             _, _, utility = self.maximize(child, d + 1)
             if utility < min_utility:
-                min_child, min_column, min_utility= child, column, utility
+                min_child, min_column, min_utility = child, column, utility
         return min_child, min_column, min_utility
 
     def decision(self):
@@ -151,7 +169,7 @@ class MinMax:
             for j in range(len(state) - 1, -1, -1):
                 if state[j] == '0':
                     index += 1
-                    if (j + 7 >= len(state) or state[j + 7] != '0'):
+                    if j + 7 >= len(state) or state[j + 7] != '0':
                         if index == i:
                             child = char + child
                             changed = True
@@ -165,10 +183,8 @@ class MinMax:
                     child = state[j] + child
             if changed is False:
                 break
-            tuple = (child, column)
-            children.append(tuple)
-
-
+            tup = (child, column)
+            children.append(tup)
 
         return children
 

@@ -86,9 +86,11 @@ class Puzzle:
                     and y_start <= y_clicked < y_end):
                 return i
 
-    def drop_piece(self, x_clicked, y_clicked, color, owner):
+    def drop_piece(self, x_clicked, y_clicked, color, owner, col=-1):
 
         col_index = self.get_col_clicked(x_clicked, y_clicked)
+        if col != -1:
+            col_index = col
         if col_index is not None:
             if self.playable[col_index]:
                 circle_index = max(self.playable[col_index])
@@ -207,31 +209,31 @@ class Puzzle:
             connected = 0
         return points
 
-    def get_final_score(self,state, player):
+    def get_final_score(self, state, player):
         points = 0
         points += self.check_horiz(state, player)
-        #print('horiz', points)
+        # print('horiz', points)
         points += self.check_vert(state, player)
-        #print('vert', points)
+        # print('vert', points)
         points += self.check_ldiag(state, player)
-        #print('ldiag', points)
+        # print('ldiag', points)
         points += self.check_rdiag(state, player)
-        #print('rdiag', points)
+        # print('rdiag', points)
         return points
 
-
-    def play(self, x_clicked, y_clicked):
+    def play(self, x_clicked, y_clicked, col=-1):
         if self.player_turn == self.player1:
-            switch_player = self.drop_piece(x_clicked, y_clicked, self.player1_color, self.player_turn)
+            switch_player = self.drop_piece(x_clicked, y_clicked, self.player1_color, self.player_turn, col)
             if switch_player:
                 self.player_turn = self.player2
                 print(self.current_state)
         elif self.player_turn == self.player2:
-            switch_player = self.drop_piece(x_clicked, y_clicked, self.player2_color, self.player_turn)
+            switch_player = self.drop_piece(x_clicked, y_clicked, self.player2_color, self.player_turn, col)
             if switch_player:
                 self.player_turn = self.player1
                 print(self.current_state)
 
         if len(self.occupied) == self.num_col * self.num_row:
             print("calc score")
-            print("player 1 score: " + str(self.get_final_score(self.current_state, '1')) + " \nplayer 2 score: " + str(self.get_final_score(self.current_state, '2')))
+            print("player 1 score: " + str(self.get_final_score(self.current_state, '1')) + " \nplayer 2 score: " + str(
+                self.get_final_score(self.current_state, '2')))
