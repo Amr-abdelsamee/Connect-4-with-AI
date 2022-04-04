@@ -8,7 +8,7 @@ class Tree:
         self.extension = 'png'
         self.num_col = num_col
         self.num_row = num_row
-        self.adjust_states()
+        # self.adjust_states()
         self.create_tree()
         self.save_tree()
 
