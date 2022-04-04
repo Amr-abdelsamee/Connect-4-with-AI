@@ -114,28 +114,28 @@ class MinMax:
     def maximize(self, state, d):
         if d == self.depth:
             return None, self.heu(state)
-        max_child, max_utility = None, float('-inf')
+        max_child, max_column, max_utility = None, 0, float('-inf')
         children = self.get_next_states(state, True)
-        for child in children:
-            _, utility = self.minimize(child, d + 1)
+        for child, column in children:
+            _, _, utility = self.minimize(child, d + 1)
             if utility > max_utility:
-                max_child, max_utility = child, utility
-        return max_child, max_utility
+                max_child, max_column, max_utility = child, column, utility
+        return max_child, max_column, max_utility
 
     def minimize(self, state, d):
         if d == self.depth:
             return None, self.heu(state)
-        min_child, min_utility = None, float('inf')
+        min_child, min_column, min_utility = None, 0, float('inf')
         children = self.get_next_states(state, False)
-        for child in children:
-            _, utility = self.maximize(child, d + 1)
+        for child, column in children:
+            _, _, utility = self.maximize(child, d + 1)
             if utility < min_utility:
-                min_child, min_utility = child, utility
-        return min_child, min_utility
+                min_child, min_column, min_utility= child, column, utility
+        return min_child, min_column, min_utility
 
     def decision(self):
-        child, utility = self.maximize(self.state, 0)
-        return child, self.tree
+        child, column, utility = self.maximize(self.state, 0)
+        return child, column, self.tree
 
     def get_next_states(self, state, turn):  # turn is True for AI, False for Human
         if turn:
@@ -145,6 +145,8 @@ class MinMax:
         children = []
         for i in range(self.num_col):
             index = -1
+            column = 0
+            changed = False
             child = ""
             for j in range(len(state) - 1, -1, -1):
                 if state[j] == '0':
@@ -152,6 +154,8 @@ class MinMax:
                     if (j + 7 >= len(state) or state[j + 7] != '0'):
                         if index == i:
                             child = char + child
+                            changed = True
+                            column = j % self.num_col
                         else:
                             child = state[j] + child
                     else:
@@ -159,10 +163,16 @@ class MinMax:
                         index -= 1
                 else:
                     child = state[j] + child
-            children.append(child)
+            if changed is False:
+                break
+            tuple = (child, column)
+            children.append(tuple)
+
+
+
         return children
 
     def work(self, state):
         self.update(state)
-        newState, tree = self.decision()
-        return newState, tree
+        newState, column, tree = self.decision()
+        return newState, column, tree
