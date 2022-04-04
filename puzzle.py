@@ -21,9 +21,9 @@ class Puzzle:
     def __init__(self, screen, num_row, num_col, screen_width, screen_height):
         self.screen = screen
 
-        self.circles = [] # array of obj
-        self.playable = [] # array of ints
-        self.occupied = [] # array of ints
+        self.circles = []  # array of obj
+        self.playable = []  # array of ints
+        self.occupied = []  # array of ints
         self.states = []
         # self.clickable_ranges = []
         self.screen_width = screen_width
@@ -40,10 +40,8 @@ class Puzzle:
         self.player2_score = 0
         self.player_turn = '1'
         self.rect = None
-
         # calculate the block width and height depending on the screen width and height
-        self.diameter = ((self.screen_width - (2 * SIDES_PADDING)) - ((self.num_col-1) * INBTWN_SPACE)) / self.num_col
-
+        self.diameter = ((self.screen_width - (2 * SIDES_PADDING)) - ((self.num_col - 1) * INBTWN_SPACE)) / self.num_col
         self.create_circles()
         self.generate_playable()
 
@@ -94,13 +92,12 @@ class Puzzle:
                 return i
 
 
-    def drop_piece(self, x_clicked, y_clicked, color, owner):
+    def drop_piece(self, col_index, color, owner):
         
-        col_index = self.get_col_clicked(x_clicked, y_clicked)
-        if col_index != None:
+        if col_index is not None:
             if self.playable[col_index]:
                 circle_index = max(self.playable[col_index])
-                self.circles[circle_index].update(color, owner)
+                self.circles[circle_index].update(color)
                 self.playable[col_index].remove(circle_index)
                 self.occupied.append(circle_index)
                 self.update_state(circle_index, owner)
@@ -143,18 +140,30 @@ class Puzzle:
             elif player == '2':
                 self.player2_score += score
 
+    def update_board(self, new_state):
+        for i in range(len(self.circles)-1):
+            if new_state[i] == '0':
+                self.circles[i].update(CIRCLE_COLOR)
+            if new_state[i] == '1':
+                self.circles[i].update(self.player1_color)
+            if new_state[i] == '2':
+                self.circles[i].update(self.player2_color)
+        self.current_state = new_state
+        self.player_turn = self.player1
 
     def play(self, x_clicked, y_clicked):
+
         if self.player_turn == self.player1:
-            switch_player = self.drop_piece(x_clicked, y_clicked, self.player1_color, self.player_turn)
-            if switch_player: 
+            col_index = self.get_col_clicked(x_clicked, y_clicked)
+            switch_player = self.drop_piece(col_index, self.player1_color, self.player_turn)
+            if switch_player:
                 self.player_turn = self.player2
                 print(self.current_state)
-        elif self.player_turn == self.player2:
-            switch_player = self.drop_piece(x_clicked, y_clicked, self.player2_color, self.player_turn)
-            if switch_player:
-                self.player_turn = self.player1
-                print(self.current_state)
+        # elif self.player_turn == self.player2:
+        #     switch_player = self.drop_piece(col_index, self.player2_color, self.player_turn)
+        #     if switch_player:
+        #         self.player_turn = self.player1
+        #         print(self.current_state)
 
         if len(self.occupied) == self.num_col*self.num_row:
             print("calc score")
