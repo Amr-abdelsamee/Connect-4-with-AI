@@ -143,16 +143,22 @@ class MinMax:
         else:
             char = '1'
         children = []
-        for i in range(7):
+        for i in range(self.num_col):
             index = -1
             child = ""
-            for character in state[::-1]:
-                if character == '0':
+            for j in range(len(state) - 1, -1, -1):
+                if state[j] == '0':
                     index += 1
-                if character == '0' and index == i:
-                    child = char + child
+                    if (j + 7 >= len(state) or state[j + 7] != '0'):
+                        if index == i:
+                            child = char + child
+                        else:
+                            child = state[j] + child
+                    else:
+                        child = state[j] + child
+                        index -= 1
                 else:
-                    child = character + child
+                    child = state[j] + child
             children.append(child)
         return children
 
