@@ -158,13 +158,9 @@ pygame.display.set_icon(icon)
 start_window()
 if start_players:
     puzzle = Puzzle(game_screen, NUM_ROW, NUM_COL, SCREEN_WIDTH, SCREEN_HEIGHT)
-    agent = MinMax(4, NUM_ROW, NUM_COL)
-
     playing_circle = Circle(game_screen, puzzle.circles[0].x_pos, puzzle.circles[0].y_pos - puzzle.diameter - 10,
-                            puzzle.player1_color, puzzle.diameter / 2)
+                                puzzle.player1_color, puzzle.diameter / 2)
     playing_circle.draw()
-
-    running = True  # running condition
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -178,21 +174,53 @@ if start_players:
                     pygame.draw.rect(game_screen, BG_COLOR, clear_rect)
                     playing_circle.change_pos(x_hovered, puzzle.circles[0].y_pos - puzzle.diameter - 10)
 
-            playing_circle.update(puzzle.player1_color,puzzle.player_turn)
-            if puzzle.player_turn == puzzle.player1 and event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN:
                 # store the coordinates of the clicked position
                 x_clicked, y_clicked = pygame.mouse.get_pos()
                 puzzle.play(x_clicked, y_clicked)
-                print("player1 turn and current turn is", puzzle.player_turn)
 
-            if puzzle.player_turn == puzzle.player2:
-                playing_circle.update(puzzle.player2_color, puzzle.player_turn)
-                pygame.display.update()
-                ai_state, col, _ = agent.work(puzzle.current_state)
-                puzzle.play(x_clicked, y_clicked, col)
-                print("player2 turn and current turn is", puzzle.player_turn)
-                # tree_window(puzzle.current_state)
+                if puzzle.player_turn == puzzle.player1:
+                    playing_circle.update(puzzle.player1_color,puzzle.player_turn)
+                else:
+                    playing_circle.update(puzzle.player2_color, puzzle.player_turn)
+
 
             pygame.display.update()
+
 else:
     AI_window()
+    puzzle = Puzzle(game_screen, NUM_ROW, NUM_COL, SCREEN_WIDTH, SCREEN_HEIGHT)
+    playing_circle = Circle(game_screen, puzzle.circles[0].x_pos, puzzle.circles[0].y_pos - puzzle.diameter - 10,
+                            puzzle.player1_color, puzzle.diameter / 2)
+    playing_circle.draw()
+    agent = MinMax(2, NUM_ROW, NUM_COL)
+
+    if pruning_selected:
+        pass
+    else:
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.MOUSEMOTION:
+                    x_hovered, y_hovered = pygame.mouse.get_pos()
+                    if x_hovered > puzzle.circles[0].x_pos and x_hovered < puzzle.circles[NUM_COL - 1].x_pos:
+                        clear_rect = pygame.Rect(0, 0, SCREEN_WIDTH, 140)
+                        pygame.draw.rect(game_screen, BG_COLOR, clear_rect)
+                        playing_circle.change_pos(x_hovered, puzzle.circles[0].y_pos - puzzle.diameter - 10)
+
+                playing_circle.update(puzzle.player1_color,puzzle.player_turn)
+                if puzzle.player_turn == puzzle.player1 and event.type == pygame.MOUSEBUTTONDOWN:
+                    # store the coordinates of the clicked position
+                    x_clicked, y_clicked = pygame.mouse.get_pos()
+                    puzzle.play(x_clicked, y_clicked)
+
+                if puzzle.player_turn == puzzle.player2:
+                    playing_circle.update(puzzle.player2_color, puzzle.player_turn)
+                    pygame.display.update()
+                    ai_state, ai_col, ai_tree = agent.work(puzzle.current_state)
+                    puzzle.play(x_clicked, y_clicked, ai_col)
+                    # tree_window(ai_tree[0])
+
+                pygame.display.update()
