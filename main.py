@@ -132,13 +132,6 @@ def message(image_name):
 
 
 def tree_window(states):
-    # states = [["1",["1st_state_child1","1st_state_child2","1st_state_child3","1st_state_child4"]],
-    #         ["2",["2nd_state_child1","2nd_state_child2","2nd_state_child3","2nd_state_child4"]],
-    #         ["3",["3rd_state_child"]],
-    #         ["4",["4th_state_child1","4th_state_child3","4th_state_child4"]],
-    #         ["6",["6th_state_child1","4th_state_child3"]],
-    #         ["7",["7th_state_child1","4th_state_child3"]]
-    #         ]
     tree = Tree(states, NUM_COL, NUM_ROW)
     image_name = tree.png_name + '.' + tree.extension
     message(image_name)
@@ -216,12 +209,14 @@ else:
                 if puzzle.player_turn == puzzle.player2:
                     playing_circle.update(puzzle.player2_color, puzzle.player_turn)
                     pygame.display.update()
-                    ai_state, ai_col, ai_tree = agent.work(puzzle.current_state)
+                    ai_state, ai_col = agent.work(puzzle.current_state)
                     puzzle.play(x_clicked, y_clicked, ai_col)
-                    # tree_window(ai_tree[0])
+                    pygame.display.update()
+                    ai_tree = agent.tree
+                    tree_window(ai_tree)
                 pygame.display.update()
     else:
-        agent = MinMax(5, NUM_ROW, NUM_COL)
+        agent = MinMax(2, NUM_ROW, NUM_COL)
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -243,8 +238,12 @@ else:
                 if puzzle.player_turn == puzzle.player2:
                     playing_circle.update(puzzle.player2_color, puzzle.player_turn)
                     pygame.display.update()
-                    ai_state, ai_col, ai_tree = agent.work(puzzle.current_state)
+                    ai_state, ai_col = agent.work(puzzle.current_state)
+                    print(">>>>>>>>>>>>>>>>>>>>>" + str(ai_col))
                     puzzle.play(x_clicked, y_clicked, ai_col)
-                    # tree_window(ai_tree[0])
+                    pygame.display.update()
+                    ai_tree = agent.tree
+                    print(ai_tree)
+                    tree_window(ai_tree)
 
                 pygame.display.update()
