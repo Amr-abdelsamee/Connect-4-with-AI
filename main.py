@@ -6,7 +6,7 @@ from puzzle import Puzzle
 from circles import Circle
 from tree import Tree
 from buttons import Button
-from agents import MinMax
+from agents import MinMax, PrunMinMax
 
 # from copy import copy
 
@@ -159,7 +159,7 @@ start_window()
 if start_players:
     puzzle = Puzzle(game_screen, NUM_ROW, NUM_COL, SCREEN_WIDTH, SCREEN_HEIGHT)
     playing_circle = Circle(game_screen, puzzle.circles[0].x_pos, puzzle.circles[0].y_pos - puzzle.diameter - 10,
-                                puzzle.player1_color, puzzle.diameter / 2)
+                            puzzle.player1_color, puzzle.diameter / 2)
     playing_circle.draw()
     while True:
         for event in pygame.event.get():
@@ -180,10 +180,9 @@ if start_players:
                 puzzle.play(x_clicked, y_clicked)
 
                 if puzzle.player_turn == puzzle.player1:
-                    playing_circle.update(puzzle.player1_color,puzzle.player_turn)
+                    playing_circle.update(puzzle.player1_color, puzzle.player_turn)
                 else:
                     playing_circle.update(puzzle.player2_color, puzzle.player_turn)
-
 
             pygame.display.update()
 
@@ -193,11 +192,9 @@ else:
     playing_circle = Circle(game_screen, puzzle.circles[0].x_pos, puzzle.circles[0].y_pos - puzzle.diameter - 10,
                             puzzle.player1_color, puzzle.diameter / 2)
     playing_circle.draw()
-    agent = MinMax(2, NUM_ROW, NUM_COL)
 
     if pruning_selected:
-        pass
-    else:
+        agent = PrunMinMax(7, NUM_ROW, NUM_COL)
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -205,12 +202,39 @@ else:
                     sys.exit()
                 if event.type == pygame.MOUSEMOTION:
                     x_hovered, y_hovered = pygame.mouse.get_pos()
-                    if x_hovered > puzzle.circles[0].x_pos and x_hovered < puzzle.circles[NUM_COL - 1].x_pos:
+                    if puzzle.circles[0].x_pos < x_hovered < puzzle.circles[NUM_COL - 1].x_pos:
                         clear_rect = pygame.Rect(0, 0, SCREEN_WIDTH, 140)
                         pygame.draw.rect(game_screen, BG_COLOR, clear_rect)
                         playing_circle.change_pos(x_hovered, puzzle.circles[0].y_pos - puzzle.diameter - 10)
 
-                playing_circle.update(puzzle.player1_color,puzzle.player_turn)
+                playing_circle.update(puzzle.player1_color, puzzle.player_turn)
+                if puzzle.player_turn == puzzle.player1 and event.type == pygame.MOUSEBUTTONDOWN:
+                    # store the coordinates of the clicked position
+                    x_clicked, y_clicked = pygame.mouse.get_pos()
+                    puzzle.play(x_clicked, y_clicked)
+
+                if puzzle.player_turn == puzzle.player2:
+                    playing_circle.update(puzzle.player2_color, puzzle.player_turn)
+                    pygame.display.update()
+                    ai_state, ai_col, ai_tree = agent.work(puzzle.current_state)
+                    puzzle.play(x_clicked, y_clicked, ai_col)
+                    # tree_window(ai_tree[0])
+                pygame.display.update()
+    else:
+        agent = MinMax(5, NUM_ROW, NUM_COL)
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.MOUSEMOTION:
+                    x_hovered, y_hovered = pygame.mouse.get_pos()
+                    if puzzle.circles[0].x_pos < x_hovered < puzzle.circles[NUM_COL - 1].x_pos:
+                        clear_rect = pygame.Rect(0, 0, SCREEN_WIDTH, 140)
+                        pygame.draw.rect(game_screen, BG_COLOR, clear_rect)
+                        playing_circle.change_pos(x_hovered, puzzle.circles[0].y_pos - puzzle.diameter - 10)
+
+                playing_circle.update(puzzle.player1_color, puzzle.player_turn)
                 if puzzle.player_turn == puzzle.player1 and event.type == pygame.MOUSEBUTTONDOWN:
                     # store the coordinates of the clicked position
                     x_clicked, y_clicked = pygame.mouse.get_pos()
