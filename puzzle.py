@@ -2,7 +2,6 @@ from copy import copy
 import pygame
 from circles import Circle
 
-
 # screen constants
 SIDES_PADDING = 10
 UPPER_PADDING = 150
@@ -11,10 +10,11 @@ INBTWN_SPACE = 4
 
 WIN_CONNECTION = 4
 # blocks constants
-CIRCLE_COLOR = (200,200,200)
-RECT_COLOR = (0,0,0)
+CIRCLE_COLOR = (200, 200, 200)
+RECT_COLOR = (0, 0, 0)
 PLAYER1_COLOR = (12, 90, 55)
 PLAYER2_COLOR = (120, 9, 5)
+
 
 class Puzzle:
 
@@ -40,64 +40,61 @@ class Puzzle:
         self.player2_score = 0
         self.player_turn = '1'
         self.rect = None
+
         # calculate the block width and height depending on the screen width and height
         self.diameter = ((self.screen_width - (2 * SIDES_PADDING)) - ((self.num_col - 1) * INBTWN_SPACE)) / self.num_col
+
         self.create_circles()
         self.generate_playable()
 
-# create_rects creates the blocks of the game
+    # create_rects creates the blocks of the game
     def create_circles(self):
         # initial cordinates of the first block
-        x = SIDES_PADDING + self.diameter/2
-        y = UPPER_PADDING + self.diameter/2
-        self.rect = pygame.Rect(SIDES_PADDING-5, UPPER_PADDING-5, self.screen_width-(2*SIDES_PADDING)+10, self.screen_height - UPPER_PADDING - LOWER_PADDING)
+        x = SIDES_PADDING + self.diameter / 2
+        y = UPPER_PADDING + self.diameter / 2
+        self.rect = pygame.Rect(SIDES_PADDING - 5, UPPER_PADDING - 5, self.screen_width - (2 * SIDES_PADDING) + 10,
+                                self.screen_height - UPPER_PADDING - LOWER_PADDING)
         pygame.draw.rect(self.screen, RECT_COLOR, self.rect)
 
         for _ in range(0, self.num_row):
             for _ in range(0, self.num_col):
-                circle = Circle(self.screen, x, y, CIRCLE_COLOR, self.diameter/2)
+                circle = Circle(self.screen, x, y, CIRCLE_COLOR, self.diameter / 2)
                 circle.draw()
                 self.circles.append(circle)
                 x = x + self.diameter + INBTWN_SPACE
-            x = SIDES_PADDING + self.diameter/2
+            x = SIDES_PADDING + self.diameter / 2
             y = y + self.diameter + INBTWN_SPACE
-
-
-
-
-
 
     def generate_playable(self):
         temp = []
         for i in range(self.num_col):
-            inc = i 
+            inc = i
             for j in range(self.num_row):
                 temp.append(inc)
                 inc += self.num_col
             self.playable.append(copy(temp))
             temp.clear()
 
-
     def get_col_clicked(self, x_clicked, y_clicked):
-        last_circle_index = (self.num_col * self.num_row) -1
-        y_end = self.circles[last_circle_index].y_pos + (self.diameter/2)
+        last_circle_index = (self.num_col * self.num_row) - 1
+        y_end = self.circles[last_circle_index].y_pos + (self.diameter / 2)
         for i in range(self.num_col):
-            x_start = self.circles[i].x_pos - (self.diameter/2)
-            x_end = self.circles[i].x_pos + (self.diameter/2)
-            y_start = self.circles[i].y_pos - (self.diameter/2)
-            if( x_clicked >= x_start
-            and x_clicked < x_end
-            and y_clicked >= y_start
-            and y_clicked < y_end):
+            x_start = self.circles[i].x_pos - (self.diameter / 2)
+            x_end = self.circles[i].x_pos + (self.diameter / 2)
+            y_start = self.circles[i].y_pos - (self.diameter / 2)
+            if (x_start <= x_clicked < x_end
+                    and y_start <= y_clicked < y_end):
                 return i
 
+    def drop_piece(self, x_clicked, y_clicked, color, owner, col=-1):
 
-    def drop_piece(self, col_index, color, owner):
-        
+        col_index = self.get_col_clicked(x_clicked, y_clicked)
+        if col != -1:
+            col_index = col
         if col_index is not None:
             if self.playable[col_index]:
                 circle_index = max(self.playable[col_index])
-                self.circles[circle_index].update(color)
+                self.circles[circle_index].update(color, owner)
                 self.playable[col_index].remove(circle_index)
                 self.occupied.append(circle_index)
                 self.update_state(circle_index, owner)
@@ -105,69 +102,138 @@ class Puzzle:
             else:
                 return False
 
-
     def update_state(self, index, player):
         self.current_state = list(self.current_state)
         self.current_state[index] = player
         self.current_state = "".join(self.current_state)
         self.states.append(self.current_state)
 
+    def check_horiz(self, state, p):
+        points = 0
+        connected = 0
+        for i in range(self.num_row):
+            j = -1
+            while j < self.num_col:
+                j += 1
+                while j < self.num_col and state[i * self.num_col + j] == p:
+                    connected += 1
+                    j += 1
+                if connected > 3:
+                    points += connected - 3
+                connected = 0
+        return points
 
-    def get_score(self):
-        counter = 0
-        i = 0
-        while i <= (self.num_col*self.num_row)-1:
-            while i <= (self.num_col*self.num_row)-1 and self.current_state[i] == self.player1:
-                counter += 1
+    def check_vert(self, state, p):
+        points = 0
+        connected = 0
+        for i in range(self.num_col):
+            j = -1
+            while j < self.num_row:
+                j += 1
+                while j < self.num_row and state[j * self.num_col + i] == p:
+                    connected += 1
+                    j += 1
+                if connected > 3:
+                    points += connected - 3
+                connected = 0
+        return points
+
+    def check_ldiag(self, state, p):
+        points = 0
+        connected = 0
+        for i in range(self.num_row):
+            j = 0
+            while i < self.num_row and j < self.num_col:
+                if state[i * self.num_col + j] == p:
+                    connected += 1
+                else:
+                    if connected > 3:
+                        points += connected - 3
+                    connected = 0
+                j += 1
                 i += 1
-            # print("1_counter: "+ str(counter))
-            self.calc_score(counter, self.player1)
-            counter = 0
-            while i <= (self.num_col*self.num_row)-1 and self.current_state[i] == self.player2 :
-                counter += 1
+            if connected > 3:
+                points += connected - 3
+            connected = 0
+
+        for i in range(self.num_row):
+            j = 1 + i
+            i = 0
+
+            while i < self.num_row and j < self.num_col:
+                if state[i * self.num_col + j] == p:
+                    connected += 1
+                else:
+                    if connected > 3:
+                        points += connected - 3
+                    connected = 0
+                j += 1
                 i += 1
-            # print("2_counter: "+ str(counter))
-            self.calc_score(counter, self.player2)
-            counter = 0
+            if connected > 3:
+                points += connected - 3
+            connected = 0
+        return points
 
+    def check_rdiag(self, state, p):
+        points = 0
+        connected = 0
+        for i in range(self.num_row):
+            j = self.num_col - 1
+            while i < self.num_row and j > -1:
+                if state[i * self.num_col + j] == p:
+                    connected += 1
+                else:
+                    if connected > 3:
+                        points += connected - 3
+                    connected = 0
+                j -= 1
+                i += 1
+            if connected > 3:
+                points += connected - 3
+            connected = 0
 
-    def calc_score(self, sequence_len, player):
-        if sequence_len >= WIN_CONNECTION:
-            score = 1 + (sequence_len- WIN_CONNECTION)
-            # print(player,"score ",score)
-            if player == '1':
-                self.player1_score += score
-            elif player == '2':
-                self.player2_score += score
+        for i in range(self.num_row):
+            j = self.num_col - 2 - i
+            i = 0
+            while i < self.num_row and j > -1:
+                if state[i * self.num_col + j] == p:
+                    connected += 1
+                else:
+                    if connected > 3:
+                        points += connected - 3
+                    connected = 0
+                j -= 1
+                i += 1
+            if connected > 3:
+                points += connected - 3
+            connected = 0
+        return points
 
-    def update_board(self, new_state):
-        for i in range(len(self.circles)-1):
-            if new_state[i] == '0':
-                self.circles[i].update(CIRCLE_COLOR)
-            if new_state[i] == '1':
-                self.circles[i].update(self.player1_color)
-            if new_state[i] == '2':
-                self.circles[i].update(self.player2_color)
-        self.current_state = new_state
-        self.player_turn = self.player1
+    def get_final_score(self, state, player):
+        points = 0
+        points += self.check_horiz(state, player)
+        # print('horiz', points)
+        points += self.check_vert(state, player)
+        # print('vert', points)
+        points += self.check_ldiag(state, player)
+        # print('ldiag', points)
+        points += self.check_rdiag(state, player)
+        # print('rdiag', points)
+        return points
 
-    def play(self, x_clicked, y_clicked):
-
+    def play(self, x_clicked, y_clicked, col=-1):
         if self.player_turn == self.player1:
-            col_index = self.get_col_clicked(x_clicked, y_clicked)
-            switch_player = self.drop_piece(col_index, self.player1_color, self.player_turn)
+            switch_player = self.drop_piece(x_clicked, y_clicked, self.player1_color, self.player_turn, col)
             if switch_player:
                 self.player_turn = self.player2
                 print(self.current_state)
-        # elif self.player_turn == self.player2:
-        #     switch_player = self.drop_piece(col_index, self.player2_color, self.player_turn)
-        #     if switch_player:
-        #         self.player_turn = self.player1
-        #         print(self.current_state)
+        elif self.player_turn == self.player2:
+            switch_player = self.drop_piece(x_clicked, y_clicked, self.player2_color, self.player_turn, col)
+            if switch_player:
+                self.player_turn = self.player1
+                print(self.current_state)
 
-        if len(self.occupied) == self.num_col*self.num_row:
+        if len(self.occupied) == self.num_col * self.num_row:
             print("calc score")
-            self.get_score()
-            print("player 1 score: "+ str(self.player1_score)+" \nplayer 2 score: "+ str(self.player2_score))
-
-
+            print("player 1 score: " + str(self.get_final_score(self.current_state, '1')) + " \nplayer 2 score: " + str(
+                self.get_final_score(self.current_state, '2')))
