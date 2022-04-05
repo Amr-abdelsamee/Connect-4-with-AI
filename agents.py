@@ -229,7 +229,7 @@ class MinMax(Agents):
     def work(self, state):
         self.update(state)
         newState, column, utility = self.decision()
-        self.tree.append((0, column, utility, state, 'maxGate'))
+        self.tree.append((state, 0, column, utility, 'original'))
         self.tree.reverse()
         self.tree = self.create_tree()
         return newState, column
@@ -287,7 +287,7 @@ class PrunMinMax(Agents):
     def work(self, state):
         self.update(state)
         newState, column, utility = self.decision()
-        self.tree.append((0, column, utility, state, 'maxGate'))
+        self.tree.append((state, 0, column, utility, 'original'))
         self.tree.reverse()
         self.tree = self.create_tree()
         return newState, column
