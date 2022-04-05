@@ -196,7 +196,7 @@ class MinMax(Agents):
         index = self.index
         for child, column in children:
             _, _, utility = self.minimize(child, d + 1, index)
-            node = (p, index, column, utility, 'maxGate')
+            node = (p, index, column, utility, 'minGate')
             index -= 1
             gp.append(node)
             if utility > max_utility:
@@ -214,7 +214,7 @@ class MinMax(Agents):
         index = self.index
         for child, column in children:
             _, _, utility = self.maximize(child, d + 1, index)
-            node = (p, index, column, utility, 'minGate')
+            node = (p, index, column, utility, 'maxGate')
             index -= 1
             gp.append(node)
             if utility < min_utility:
@@ -224,12 +224,12 @@ class MinMax(Agents):
 
     def decision(self):
         child, column, utility = self.maximize(self.state, 0, 0)
-        return child, column
+        return child, column, utility
 
     def work(self, state):
         self.update(state)
-        newState, column = self.decision()
-        self.tree.append((state, 0, 'original'))
+        newState, column, utility = self.decision()
+        self.tree.append((0, column, utility, state, 'maxGate'))
         self.tree.reverse()
         self.tree = self.create_tree()
         return newState, column
@@ -246,7 +246,7 @@ class PrunMinMax(Agents):
         index = self.index
         for child, column in children:
             _, _, utility = self.minimize(child, d + 1, index, alpha, beta)
-            node = (p, index, column, utility, 'maxGate')
+            node = (p, index, column, utility, 'minGate')
             index -= 1
             gp.append(node)
             if utility > max_utility:
@@ -268,7 +268,7 @@ class PrunMinMax(Agents):
         index = self.index
         for child, column in children:
             _, _, utility = self.maximize(child, d + 1, index, alpha, beta)
-            node = (p, index, column, utility, 'minGate')
+            node = (p, index, column, utility, 'maxGate')
             index -= 1
             gp.append(node)
             if utility < min_utility:
@@ -282,12 +282,12 @@ class PrunMinMax(Agents):
 
     def decision(self):
         child, column, utility = self.maximize(self.state, 0, 0, float('-inf'), float('inf'))
-        return child, column
+        return child, column, utility
 
     def work(self, state):
         self.update(state)
-        newState, column = self.decision()
-        self.tree.append((0, state, 'original'))
+        newState, column, utility = self.decision()
+        self.tree.append((0, column, utility, state, 'maxGate'))
         self.tree.reverse()
         self.tree = self.create_tree()
         return newState, column
