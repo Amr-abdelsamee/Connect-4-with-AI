@@ -1,4 +1,4 @@
-class MinMax:
+class Agents:
     def __init__(self, depth, num_row, num_col):
         self.num_row = num_row
         self.num_col = num_col
@@ -132,6 +132,44 @@ class MinMax:
         AI = self.get_points(state, '2')
         return AI - player
 
+    def get_next_states(self, state, turn):  # turn is True for AI, False for Human
+        if turn:
+            char = '2'
+        else:
+            char = '1'
+        children = []
+        for i in range(self.num_col):
+            index = -1
+            column = 0
+            changed = False
+            child = ""
+            for j in range(len(state) - 1, -1, -1):
+                if state[j] == '0':
+                    index += 1
+                    if j + 7 >= len(state) or state[j + 7] != '0':
+                        if index == i:
+                            child = char + child
+                            changed = True
+                            column = j % self.num_col
+                        else:
+                            child = state[j] + child
+                    else:
+                        child = state[j] + child
+                        index -= 1
+                else:
+                    child = state[j] + child
+            if changed is False:
+                break
+            tup = (child, column)
+            children.append(tup)
+
+        return children
+
+    def decision(self):
+        pass
+
+
+class MinMax(Agents):
     def maximize(self, state, d, p):
         gp = []
         if d == self.depth:
@@ -172,39 +210,6 @@ class MinMax:
         child, column, utility = self.maximize(self.state, 0, 0)
         return child, column, self.tree
 
-    def get_next_states(self, state, turn):  # turn is True for AI, False for Human
-        if turn:
-            char = '2'
-        else:
-            char = '1'
-        children = []
-        for i in range(self.num_col):
-            index = -1
-            column = 0
-            changed = False
-            child = ""
-            for j in range(len(state) - 1, -1, -1):
-                if state[j] == '0':
-                    index += 1
-                    if j + 7 >= len(state) or state[j + 7] != '0':
-                        if index == i:
-                            child = char + child
-                            changed = True
-                            column = j % self.num_col
-                        else:
-                            child = state[j] + child
-                    else:
-                        child = state[j] + child
-                        index -= 1
-                else:
-                    child = state[j] + child
-            if changed is False:
-                break
-            tup = (child, column)
-            children.append(tup)
-
-        return children
-
     def work(self, state):
         self.update(state)
         newState, column, tree = self.decision()
@@ -213,3 +218,60 @@ class MinMax:
         tree.reverse()
         return newState, column, tree
 
+
+class PrunMinMax(Agents):
+    def maximize(self, state, d, p, alpha, beta):
+        gp = []
+        if d == self.depth:
+            return None, 0, self.heu(state)
+        max_child, max_column, max_utility = None, 0, float('-inf')
+        children = self.get_next_states(state, True)
+        self.index += len(children)
+        index = self.index
+        for child, column in children:
+            _, _, utility = self.minimize(child, d + 1, index, alpha, beta)
+            node = (child, utility, 'maxGate', p, index)
+            index -= 1
+            gp.append(node)
+            if utility > max_utility:
+                max_child, max_column, max_utility = child, column, utility
+            if max_utility >= beta:
+                break
+            if max_utility > alpha:
+                alpha = max_utility
+        self.tree.append(gp)
+        return max_child, max_column, max_utility
+
+    def minimize(self, state, d, p, alpha, beta):
+        gp = []
+        if d == self.depth:
+            return None, 0, self.heu(state)
+        min_child, min_column, min_utility = None, 0, float('inf')
+        children = self.get_next_states(state, False)
+        self.index += len(children)
+        index = self.index
+        for child, column in children:
+            _, _, utility = self.maximize(child, d + 1, index, alpha, beta)
+            node = (child, utility, 'minGate', p, index)
+            index -= 1
+            gp.append(node)
+            if utility < min_utility:
+                min_child, min_column, min_utility = child, column, utility
+            if min_utility <= alpha:
+                break
+            if min_utility > beta:
+                alpha = min_utility
+        self.tree.append(gp)
+        return min_child, min_column, min_utility
+
+    def decision(self):
+        child, column, utility = self.maximize(self.state, 0, 0, float('-inf'), float('inf'))
+        return child, column, self.tree
+
+    def work(self, state):
+        self.update(state)
+        newState, column, tree = self.decision()
+        node = (state, 0, 'original')
+        tree.append(node)
+        tree.reverse()
+        return newState, column, tree
