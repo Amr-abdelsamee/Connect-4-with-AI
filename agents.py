@@ -170,15 +170,20 @@ class Agents:
 
     def search_tree(self, tree, parent):
         for branch in tree:
-            if branch[0][0] == parent:
-                return branch
+            try:
+                if branch[0][0] != None and branch[0][0] == parent:
+                    return branch
+            except:
+                print("aaaaaaaaaaaaaaaaaaaaaa")
+                print(branch)
+
         return None
 
     def create_tree(self):
         newtree = [(self.tree[0], self.tree[1])]   # new node = parent,children
         for children in self.tree[1:]:
             for child in children:
-                x = self.search_tree(self.tree, child[1])
+                x = self.search_tree(self.tree[1:], child[1])
                 if x is not None:
                     newnode = child, x
                     newtree.append(newnode)
@@ -201,7 +206,8 @@ class MinMax(Agents):
             gp.append(node)
             if utility > max_utility:
                 max_child, max_column, max_utility = child, column, utility
-        self.tree.append(gp)
+        if len(gp) != 0: 
+            self.tree.append(gp)
         return max_child, max_column, max_utility
 
     def minimize(self, state, d, p):
@@ -219,7 +225,8 @@ class MinMax(Agents):
             gp.append(node)
             if utility < min_utility:
                 min_child, min_column, min_utility = child, column, utility
-        self.tree.append(gp)
+        if len(gp) != 0: 
+            self.tree.append(gp)
         return min_child, min_column, min_utility
 
     def decision(self):
@@ -229,7 +236,7 @@ class MinMax(Agents):
     def work(self, state):
         self.update(state)
         newState, column, utility = self.decision()
-        self.tree.append((state, 0, column, utility, 'original'))
+        self.tree.append((state, 0, column, utility, 'maxgate'))
         self.tree.reverse()
         self.tree = self.create_tree()
         return newState, column
@@ -255,7 +262,8 @@ class PrunMinMax(Agents):
                 break
             if max_utility > alpha:
                 alpha = max_utility
-        self.tree.append(gp)
+        if len(gp) != 0: 
+            self.tree.append(gp)
         return max_child, max_column, max_utility
 
     def minimize(self, state, d, p, alpha, beta):
@@ -277,7 +285,8 @@ class PrunMinMax(Agents):
                 break
             if min_utility > beta:
                 alpha = min_utility
-        self.tree.append(gp)
+        if len(gp) != 0: 
+            self.tree.append(gp)
         return min_child, min_column, min_utility
 
     def decision(self):
@@ -287,7 +296,8 @@ class PrunMinMax(Agents):
     def work(self, state):
         self.update(state)
         newState, column, utility = self.decision()
-        self.tree.append((state, 0, column, utility, 'original'))
+        self.tree.append((state, 0, column, utility, 'maxgate'))
         self.tree.reverse()
         self.tree = self.create_tree()
         return newState, column
+
