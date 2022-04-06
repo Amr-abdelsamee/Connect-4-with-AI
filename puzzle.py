@@ -226,12 +226,10 @@ class Puzzle:
             switch_player = self.drop_piece(x_clicked, y_clicked, self.player1_color, self.player_turn, col)
             if switch_player:
                 self.player_turn = self.player2
-                print(self.current_state)
         elif self.player_turn == self.player2:
             switch_player = self.drop_piece(x_clicked, y_clicked, self.player2_color, self.player_turn, col)
             if switch_player:
                 self.player_turn = self.player1
-                print(self.current_state)
 
         if len(self.occupied) == self.num_col * self.num_row:
             print("calc score")

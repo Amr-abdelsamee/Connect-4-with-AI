@@ -248,7 +248,6 @@ else:
                         puzzle.player2_color, puzzle.player_turn)
                     pygame.display.update()
                     ai_state, ai_col = agent.work(puzzle.current_state)
-                    print(">>>>>>>>>>>>>>>>>>>>>" + str(ai_col))
                     puzzle.play(x_clicked, y_clicked, ai_col)
                     pygame.display.update()
                     ai_tree = agent.tree

@@ -16,121 +16,137 @@ class Agents:
         self.index = 0
         self.current_depth = 0
 
-    def calc_score(self, connected, index=0):
+    def calc_score(self, connected, index=0, p='1'):
+        v = 1
+        if p == '1':
+            v = -1
         if connected == 0:
             return 0
         if connected == 1:
             if self.num_col - index == self.num_col - self.num_col / 2:
-                return 5
+                return 5 * v
             if 0 < index < self.num_col - 1:
-                return 3
+                return 3 * v
             else:
-                return 1
-        return pow(10, connected - 1)
+                return 1 * v
+        return pow(10, connected - 1) * v
 
-    def check_horiz(self, state, p):
+    def swap(self, v):
+      if v == '1':
+        return '2'
+      else:
+        return '1'
+
+    def check_horiz(self, state):
         points = 0
         connected = 0
+        v = '1'
         for i in range(self.num_row):
             j = -1
             while j < self.num_col:
                 j += 1
-                while j < self.num_col and state[i * self.num_col + j] == p:
+                while j < self.num_col and state[i * self.num_col + j] == v:
                     connected += 1
                     j += 1
-                points += self.calc_score(connected, j - 1)
-                connected = 0
+                points += self.calc_score(connected, j - 1,v)
+                connected = 1
+                v = self.swap(v)
         return points
 
-    def check_vert(self, state, p):
+    def check_vert(self, state):
         points = 0
         connected = 0
+        v = '1'
         for i in range(self.num_col):
             j = -1
             while j < self.num_row:
-                j += 1
-                while j < self.num_row and state[j * self.num_col + i] == p:
+                j +=1
+                while j < self.num_row and state[j * self.num_col + i] == v:
                     connected += 1
                     j += 1
-                points += self.calc_score(connected, i)
-                connected = 0
+                points += self.calc_score(connected, i, v)
+                connected = 1
+                v = self.swap(v)
         return points
 
-    def check_ldiag(self, state, p):
+    def check_ldiag(self, state):
         points = 0
         connected = 0
+        v = '1'
         for i in range(self.num_row):
             j = 0
             while i < self.num_row and j < self.num_col:
-                if state[i * self.num_col + j] == p:
+                if state[i * self.num_col + j] == v:
                     connected += 1
                 else:
-                    points += self.calc_score(connected, j)
-                    connected = 0
+                    points += self.calc_score(connected, j, v)
+                    connected = 1
+                    v = self.swap(v)
                 j += 1
                 i += 1
-            points += self.calc_score(connected, j - 1)
+            points += self.calc_score(connected, j - 1, v)
             connected = 0
 
         for i in range(self.num_row):
             j = 1 + i
             i = 0
-
             while i < self.num_row and j < self.num_col:
-                if state[i * self.num_col + j] == p:
+                if state[i * self.num_col + j] == v:
                     connected += 1
                 else:
-                    points += self.calc_score(connected, j)
-                    connected = 0
+                    points += self.calc_score(connected, j, v)
+                    connected = 1
+                    v = self.swap(v)
                 j += 1
                 i += 1
-            points += self.calc_score(connected, j - 1)
+            points += self.calc_score(connected, j - 1, v)
             connected = 0
         return points
 
-    def check_rdiag(self, state, p):
+    def check_rdiag(self, state):
         points = 0
         connected = 0
+        v = '1'
         for i in range(self.num_row):
             j = self.num_col - 1
             while i < self.num_row and j > -1:
-                if state[i * self.num_col + j] == p:
+                if state[i * self.num_col + j] == v:
                     connected += 1
                 else:
-                    points += self.calc_score(connected, j)
-                    connected = 0
+                    points += self.calc_score(connected, j, v)
+                    connected = 1
+                    v = self.swap(v)
                 j -= 1
                 i += 1
-            points += self.calc_score(connected, j + 1)
+            points += self.calc_score(connected, j + 1, v)
             connected = 0
 
         for i in range(self.num_row):
             j = self.num_col - 2 - i
             i = 0
             while i < self.num_row and j > -1:
-                if state[i * self.num_col + j] == p:
+                if state[i * self.num_col + j] == v:
                     connected += 1
                 else:
-                    points += self.calc_score(connected, j)
-                    connected = 0
+                    points += self.calc_score(connected, j, v)
+                    connected = 1
+                    v = self.swap(v)
                 j -= 1
                 i += 1
-            points += self.calc_score(connected, j + 1)
+            points += self.calc_score(connected, j + 1, v)
             connected = 0
         return points
 
-    def get_points(self, state, p):
+    def get_points(self, state):
         points = 0
-        points += self.check_horiz(state, p)
-        points += self.check_vert(state, p)
-        points += self.check_ldiag(state, p)
-        points += self.check_rdiag(state, p)
+        points += self.check_horiz(state)
+        points += self.check_vert(state)
+        points += self.check_ldiag(state)
+        points += self.check_rdiag(state)
         return points
 
     def heu(self, state):
-        player = self.get_points(state, '1')
-        AI = self.get_points(state, '2')
-        return AI - player
+        return self.get_points(state)
 
     def get_next_states(self, state, turn):  # turn is True for AI, False for Human
         if turn:
@@ -168,76 +184,65 @@ class Agents:
     def decision(self):
         pass
 
-    def search_tree(self, tree, parent):
-        for branch in tree:
-            try:
-                if branch[0][0] != None and branch[0][0] == parent:
-                    return branch
-            except:
-                print("aaaaaaaaaaaaaaaaaaaaaa")
-                print(branch)
-
-        return None
 
     def create_tree(self):
-        newtree = [(self.tree[0], self.tree[1])]   # new node = parent,children
-        for children in self.tree[1:]:
-            for child in children:
-                x = self.search_tree(self.tree[1:], child[1])
-                if x is not None:
-                    newnode = child, x
-                    newtree.append(newnode)
-        return newtree
+        x = len(self.tree) - 2
+        newTree = [(self.tree[x+1], self.tree[x])]
+        for i in range(x,-1,-1):
+            if self.tree[i][0][0] != -1:
+                for parent in self.tree[i]:
+                    newTree.append((parent, self.tree[parent[0]]))
+        return newTree
 
 
 class MinMax(Agents):
     def maximize(self, state, d, p):
         gp = []
         if d == self.depth:
-            return None, 0, self.heu(state)
+            return None, 0, self.heu(state), -1
         max_child, max_column, max_utility = None, 0, float('-inf')
         children = self.get_next_states(state, True)
         self.index += len(children)
         index = self.index
         for child, column in children:
-            _, _, utility = self.minimize(child, d + 1, index)
-            node = (p, index, column, utility, 'minGate')
+            _, _, utility,i = self.minimize(child, d + 1, index)
+            node = (i, p, index, column, utility, 'minGate')
             index -= 1
             gp.append(node)
             if utility > max_utility:
                 max_child, max_column, max_utility = child, column, utility
-        if len(gp) != 0: 
+        if len(gp) != 0:
             self.tree.append(gp)
-        return max_child, max_column, max_utility
+        return max_child, max_column, max_utility, len(self.tree)-1
 
     def minimize(self, state, d, p):
         gp = []
         if d == self.depth:
-            return None, 0, self.heu(state)
+            return None, 0, self.heu(state), -1
         min_child, min_column, min_utility = None, 0, float('inf')
         children = self.get_next_states(state, False)
         self.index += len(children)
         index = self.index
+        i = len(children)
         for child, column in children:
-            _, _, utility = self.maximize(child, d + 1, index)
-            node = (p, index, column, utility, 'maxGate')
+            _, _, utility, i = self.maximize(child, d + 1, index)
+            node = (i, p, index, column, utility, 'maxGate')
             index -= 1
             gp.append(node)
             if utility < min_utility:
                 min_child, min_column, min_utility = child, column, utility
-        if len(gp) != 0: 
+        if len(gp) != 0:
             self.tree.append(gp)
-        return min_child, min_column, min_utility
+        return min_child, min_column, min_utility, len(self.tree)-1
 
     def decision(self):
-        child, column, utility = self.maximize(self.state, 0, 0)
-        return child, column, utility
+        child, column, utility, i = self.maximize(self.state, 0, 0)
+        return child, column, utility, i
 
     def work(self, state):
         self.update(state)
-        newState, column, utility = self.decision()
-        self.tree.append((state, 0, column, utility, 'maxgate'))
-        self.tree.reverse()
+        newState, column, utility, i = self.decision()
+        self.tree.append((i, state, 0, column, utility, 'maxgate'))
         self.tree = self.create_tree()
         return newState, column
 
@@ -246,14 +251,14 @@ class PrunMinMax(Agents):
     def maximize(self, state, d, p, alpha, beta):
         gp = []
         if d == self.depth:
-            return None, 0, self.heu(state)
+            return None, 0, self.heu(state), -1
         max_child, max_column, max_utility = None, 0, float('-inf')
         children = self.get_next_states(state, True)
         self.index += len(children)
         index = self.index
         for child, column in children:
-            _, _, utility = self.minimize(child, d + 1, index, alpha, beta)
-            node = (p, index, column, utility, 'minGate')
+            _, _, utility, i = self.minimize(child, d + 1, index, alpha, beta)
+            node = (i, p, index, column, utility, 'minGate')
             index -= 1
             gp.append(node)
             if utility > max_utility:
@@ -262,21 +267,21 @@ class PrunMinMax(Agents):
                 break
             if max_utility > alpha:
                 alpha = max_utility
-        if len(gp) != 0: 
+        if len(gp) != 0:
             self.tree.append(gp)
-        return max_child, max_column, max_utility
+        return max_child, max_column, max_utility, len(self.tree)-1
 
     def minimize(self, state, d, p, alpha, beta):
         gp = []
         if d == self.depth:
-            return None, 0, self.heu(state)
+            return None, 0, self.heu(state),-1
         min_child, min_column, min_utility = None, 0, float('inf')
         children = self.get_next_states(state, False)
         self.index += len(children)
         index = self.index
         for child, column in children:
-            _, _, utility = self.maximize(child, d + 1, index, alpha, beta)
-            node = (p, index, column, utility, 'maxGate')
+            _, _, utility,i = self.maximize(child, d + 1, index, alpha, beta)
+            node = (i, p, index, column, utility, 'maxGate')
             index -= 1
             gp.append(node)
             if utility < min_utility:
@@ -285,19 +290,17 @@ class PrunMinMax(Agents):
                 break
             if min_utility > beta:
                 alpha = min_utility
-        if len(gp) != 0: 
+        if len(gp) != 0:
             self.tree.append(gp)
-        return min_child, min_column, min_utility
+        return min_child, min_column, min_utility,len(self.tree)-1
 
     def decision(self):
-        child, column, utility = self.maximize(self.state, 0, 0, float('-inf'), float('inf'))
-        return child, column, utility
+        child, column, utility,i = self.maximize(self.state, 0, 0, float('-inf'), float('inf'))
+        return child, column, utility,i
 
     def work(self, state):
         self.update(state)
-        newState, column, utility = self.decision()
-        self.tree.append((state, 0, column, utility, 'maxgate'))
-        self.tree.reverse()
+        newState, column, utility,i = self.decision()
+        self.tree.append((i,state, 0, column, utility, 'maxgate'))
         self.tree = self.create_tree()
         return newState, column
-
