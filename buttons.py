@@ -22,6 +22,11 @@ class Button():
         pygame.draw.rect(screen, self.color, self.rect)
         screen.blit(self.text, (self.x_pos, self.y_pos))
 
+    def update(self, new_label, new_color):
+        self.color = new_color
+        self.text = self.font.render(new_label, True, self.text_color)
+
+
     # check_clicked checks if the mouse click was on the block
     def check_clicked(self, x_clicked, y_clicked):
         if(x_clicked >= self.x_pos
