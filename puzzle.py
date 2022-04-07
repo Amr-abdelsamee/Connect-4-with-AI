@@ -1,7 +1,7 @@
 from copy import copy
 import pygame
 from circles import Circle
-
+from buttons import Button
 # screen constants
 SIDES_PADDING = 10
 UPPER_PADDING = 150
@@ -18,20 +18,24 @@ PLAYER2_COLOR = (120, 9, 5)
 
 class Puzzle:
 
-    def __init__(self, screen, num_row, num_col, screen_width, screen_height):
+    def __init__(self, screen, num_row, num_col, screen_width, screen_height, game_mode):
         self.screen = screen
+        self.screen_width = screen_width
+        self.screen_height = screen_height
 
+        self.game_mode = game_mode
+        self.num_row = num_row
+        self.num_col = num_col
         self.circles = []  # array of obj
         self.playable = []  # array of ints
         self.occupied = []  # array of ints
         self.states = []
         self.board_is_full = False
-        self.screen_width = screen_width
-        self.screen_height = screen_height
-        self.num_row = num_row
-        self.num_col = num_col
+        
+        
         self.current_state = '0' * (self.num_row * self.num_col)
         self.states.append(self.current_state)
+
         self.player1 = '1'
         self.player2 = '2'
         self.player1_color = PLAYER1_COLOR
@@ -39,7 +43,13 @@ class Puzzle:
         self.player1_score = 0
         self.player2_score = 0
         self.player_turn = '1'
-        self.rect = None
+
+        if self.game_mode == 2:
+            self.create_tree_button = None
+            self.display_tree_button = None
+            self.create_tree = True
+            self.display_tree = True
+
 
         # calculate the block width and height depending on the screen width and height
         self.diameter = ((self.screen_width - (2 * SIDES_PADDING)) - ((self.num_col - 1) * INBTWN_SPACE)) / self.num_col
@@ -52,6 +62,15 @@ class Puzzle:
         # initial cordinates of the first block
         x = SIDES_PADDING + self.diameter / 2
         y = UPPER_PADDING + self.diameter / 2
+
+        if self.game_mode == 2:
+            self.create_tree_button = Button(0,0, 120, 25, (0,255,0), " Create tree: ON", (255,255,255), 15)
+            self.create_tree_button.draw(self.screen)
+            
+            self.display_tree_button = Button(130,0, 120, 25, (0,255,0), " Diplay tree: ON", (255,255,255), 15)
+            self.display_tree_button.draw(self.screen)
+
+
         self.rect = pygame.Rect(SIDES_PADDING - 5, UPPER_PADDING - 5, self.screen_width - (2 * SIDES_PADDING) + 10,
                                 self.screen_height - UPPER_PADDING - LOWER_PADDING)
         pygame.draw.rect(self.screen, RECT_COLOR, self.rect)
@@ -230,10 +249,34 @@ class Puzzle:
             switch_player = self.drop_piece(x_clicked, y_clicked, self.player2_color, self.player_turn, col)
             if switch_player:
                 self.player_turn = self.player1
+        
+        if self.game_mode == 2 :
+            if self.create_tree_button.check_clicked(x_clicked, y_clicked):
+                if self.create_tree:
+                    self.create_tree_button.update(" Create tree: OFF", (255,0,0))
+                    self.create_tree_button.draw(self.screen)
+                    self.create_tree = False
+                    self.display_tree_button.update(" Diplay tree: OFF", (255,0,0))
+                    self.display_tree_button.draw(self.screen)
+                    self.display_tree = False
+                else:
+                    self.create_tree_button.update(" Diplay tree: ON", (0,255,0))
+                    self.create_tree_button.draw(self.screen)
+                    self.create_tree = True
 
-            if len(self.occupied) == self.num_col*self.num_row:
-                self.player1_score = self.get_final_score(self.current_state, '1')
-                self.player2_score = self.get_final_score(self.current_state, '2')
-                print("player 1 score : ",self.player1_score)
-                print("player 2 score : ",self.player2_score)
-                self.board_is_full = True
+            if self.create_tree and self.display_tree_button.check_clicked(x_clicked, y_clicked):
+                if self.display_tree:
+                    self.display_tree_button.update(" Diplay tree: OFF", (255,0,0))
+                    self.display_tree_button.draw(self.screen)
+                    self.display_tree = False
+                else:
+                    self.display_tree_button.update(" Diplay tree: ON", (0,255,0))
+                    self.display_tree_button.draw(self.screen)
+                    self.display_tree = True
+
+        if len(self.occupied) == self.num_col*self.num_row:
+            self.player1_score = self.get_final_score(self.current_state, '1')
+            self.player2_score = self.get_final_score(self.current_state, '2')
+            print("player 1 score : ",self.player1_score)
+            print("player 2 score : ",self.player2_score)
+            self.board_is_full = True
