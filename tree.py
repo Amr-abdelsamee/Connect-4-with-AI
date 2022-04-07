@@ -1,15 +1,15 @@
 from graphviz import Digraph
 
 class Tree:
-    def __init__(self, tree, num_col, num_row):
+    def __init__(self, states, num_col, num_row):
         self.graph = Digraph()
-        self.tree = tree
+        self.tree = states
         self.png_name = 'states_tree'
         self.extension = 'png'
         self.num_col = num_col
         self.num_row = num_row
         self.create_tree()
-        self.save_tree()
+        
 
 
     def create_tree(self):
@@ -21,7 +21,7 @@ class Tree:
                 self.graph.node(str(self.tree[i][1][j]), str(self.tree[i][1][j][3]) +'\n'+ str(self.tree[i][1][j][2]) +'\n'+ str(self.tree[i][1][j][1]))
                 self.graph.edge(str(self.tree[i][0]), str(self.tree[i][1][j]))
 
-    def save_tree(self):
+    def save_tree(self, display):
         self.graph.format = self.extension
         tree = self.graph.unflatten(stagger = 3)
-        tree.render(self.png_name)
+        tree.render(self.png_name, view = display)
