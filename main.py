@@ -44,13 +44,13 @@ def start_window():
     global start_players
     buttons = []
     player_button = Button((SCREEN_WIDTH // 2) - (BUTTON_WIDTH // 2), (SCREEN_HEIGHT // 2) - (BUTTON_HEIGHT // 2) - 100,
-                            BUTTON_WIDTH, BUTTON_HEIGHT, BUTTONS_COLOR, " 2 Players", TEXT_COLOR, FONT_SIZE1)
+                           BUTTON_WIDTH, BUTTON_HEIGHT, BUTTONS_COLOR, " 2 Players", TEXT_COLOR, FONT_SIZE1)
     player_button.draw(game_screen)
     buttons.append(player_button)
     AI_button = Button((SCREEN_WIDTH // 2) - (BUTTON_WIDTH // 2),
                        (SCREEN_HEIGHT // 2) - (BUTTON_HEIGHT // 2) -
-                        100 + 50 + BUTTON_HEIGHT + SIDES_PADDING,
-                        BUTTON_WIDTH, BUTTON_HEIGHT, BUTTONS_COLOR, " Play against AI", TEXT_COLOR, FONT_SIZE1)
+                       100 + 50 + BUTTON_HEIGHT + SIDES_PADDING,
+                       BUTTON_WIDTH, BUTTON_HEIGHT, BUTTONS_COLOR, " Play against AI", TEXT_COLOR, FONT_SIZE1)
     AI_button.draw(game_screen)
     buttons.append(AI_button)
 
@@ -80,7 +80,7 @@ def AI_window():
     global pruning_selected
     buttons = []
     pruning = Button((SCREEN_WIDTH // 2) - (BUTTON_WIDTH // 2), (SCREEN_HEIGHT // 2) - (BUTTON_HEIGHT // 2) - 100,
-                    BUTTON_WIDTH, BUTTON_HEIGHT, BUTTONS_COLOR, " Alpha-Beta pruning", TEXT_COLOR, FONT_SIZE1)
+                     BUTTON_WIDTH, BUTTON_HEIGHT, BUTTONS_COLOR, " Alpha-Beta pruning", TEXT_COLOR, FONT_SIZE1)
     pruning.draw(game_screen)
     buttons.append(pruning)
     no_pruning = Button((SCREEN_WIDTH // 2) - (BUTTON_WIDTH // 2),
@@ -107,6 +107,50 @@ def AI_window():
                             return
             pygame.display.update()
     pygame.quit()
+
+
+def end_winodw(player1_score, player2_score, player1_type, player2_type):
+    clear_rect = pygame.Rect(0, 0, SCREEN_WIDTH, 140)
+    pygame.draw.rect(game_screen, BG_COLOR, clear_rect)
+
+    game_ends_label = Button((BUTTON_WIDTH // 4),
+                            50,
+                            BUTTON_WIDTH//2,
+                            BUTTON_HEIGHT//1.3,
+                            BUTTONS_COLOR,
+                            "   Game Over",
+                            TEXT_COLOR,
+                            FONT_SIZE1)
+    game_ends_label.draw(game_screen)
+
+    player1_label = Button((SCREEN_WIDTH // 2) - (BUTTON_WIDTH // 2),
+                           (SCREEN_HEIGHT // 2) - (BUTTON_HEIGHT // 2) - 150 + BUTTON_HEIGHT + SIDES_PADDING,
+                            BUTTON_WIDTH,
+                            BUTTON_HEIGHT//1.3,
+                            BUTTONS_COLOR,
+                            " " + player1_type + " score: " + str(player1_score),
+                            TEXT_COLOR,
+                            FONT_SIZE1)
+    player1_label.draw(game_screen)
+
+    player2_label = Button((SCREEN_WIDTH // 2) - (BUTTON_WIDTH // 2),
+                           (SCREEN_HEIGHT // 2) - (BUTTON_HEIGHT // 2) -
+                            50 + BUTTON_HEIGHT + SIDES_PADDING,
+                            BUTTON_WIDTH,
+                            BUTTON_HEIGHT//1.3,
+                            BUTTONS_COLOR,
+                            " " + player2_type + " score: " + str(player2_score),
+                            TEXT_COLOR,
+                            FONT_SIZE1)
+    player2_label.draw(game_screen)
+
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            pygame.display.update()
 
 
 pygame.init()
@@ -164,7 +208,7 @@ if start_players:
 
             if event.type == pygame.MOUSEMOTION:
                 x_hovered, y_hovered = pygame.mouse.get_pos()
-                if puzzle.circles[0].x_pos < x_hovered < puzzle.circles[NUM_COL - 1].x_pos:
+                if x_hovered > puzzle.circles[0].x_pos and x_hovered < puzzle.circles[NUM_COL - 1].x_pos:
                     clear_rect = pygame.Rect(0, 0, SCREEN_WIDTH, 140)
                     pygame.draw.rect(game_screen, BG_COLOR, clear_rect)
                     playing_circle.change_pos(
@@ -174,15 +218,18 @@ if start_players:
                 # store the coordinates of the clicked position
                 x_clicked, y_clicked = pygame.mouse.get_pos()
                 puzzle.play(x_clicked, y_clicked)
-
                 if puzzle.player_turn == puzzle.player1:
                     playing_circle.update(
                         puzzle.player1_color, puzzle.player_turn)
                 else:
                     playing_circle.update(
                         puzzle.player2_color, puzzle.player_turn)
-
+            
             pygame.display.update()
+            
+            if puzzle.board_is_full:
+                end_winodw(puzzle.player1_score, puzzle.player2_score,"Player 1", "Player 2")
+
 
 else:
     AI_window()
@@ -194,10 +241,12 @@ else:
     if pruning_selected:
         agent = PrunMinMax(4, NUM_ROW, NUM_COL)
         while True:
+            
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+
                 if event.type == pygame.MOUSEMOTION:
                     x_hovered, y_hovered = pygame.mouse.get_pos()
                     if puzzle.circles[0].x_pos < x_hovered < puzzle.circles[NUM_COL - 1].x_pos:
@@ -222,13 +271,19 @@ else:
                     ai_tree = agent.tree
                     tree_window(ai_tree)
                 pygame.display.update()
+
+                if puzzle.board_is_full:
+                    end_winodw(puzzle.player1_score, puzzle.player2_score,"Your", "AI")
+
     else:
-        agent = MinMax(4, NUM_ROW, NUM_COL)
+        agent = MinMax(3, NUM_ROW, NUM_COL)
         while True:
+            
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+
                 if event.type == pygame.MOUSEMOTION:
                     x_hovered, y_hovered = pygame.mouse.get_pos()
                     if puzzle.circles[0].x_pos < x_hovered < puzzle.circles[NUM_COL - 1].x_pos:
@@ -251,7 +306,8 @@ else:
                     puzzle.play(x_clicked, y_clicked, ai_col)
                     pygame.display.update()
                     ai_tree = agent.tree
-                    # print(ai_tree)
                     tree_window(ai_tree)
-
                 pygame.display.update()
+
+                if puzzle.board_is_full:
+                    end_winodw(puzzle.player1_score, puzzle.player2_score,"Your", "AI")

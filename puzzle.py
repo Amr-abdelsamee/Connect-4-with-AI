@@ -25,7 +25,7 @@ class Puzzle:
         self.playable = []  # array of ints
         self.occupied = []  # array of ints
         self.states = []
-        # self.clickable_ranges = []
+        self.board_is_full = False
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.num_row = num_row
@@ -231,7 +231,9 @@ class Puzzle:
             if switch_player:
                 self.player_turn = self.player1
 
-        if len(self.occupied) == self.num_col * self.num_row:
-            print("calc score")
-            print("player 1 score: " + str(self.get_final_score(self.current_state, '1')) + " \nplayer 2 score: " + str(
-                self.get_final_score(self.current_state, '2')))
+            if len(self.occupied) == self.num_col*self.num_row:
+                self.player1_score = self.get_final_score(self.current_state, '1')
+                self.player2_score = self.get_final_score(self.current_state, '2')
+                print("player 1 score : ",self.player1_score)
+                print("player 2 score : ",self.player2_score)
+                self.board_is_full = True
