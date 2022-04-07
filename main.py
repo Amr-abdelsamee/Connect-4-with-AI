@@ -7,11 +7,12 @@ from circles import Circle
 from tree import Tree
 from buttons import Button
 from agents import MinMax, PrunMinMax
-
-# from copy import copy
+from time import time
 
 NUM_ROW = 6
 NUM_COL = 7
+
+DEPTH = 3
 
 # size constants
 SCREEN_WIDTH = 700
@@ -19,12 +20,11 @@ SCREEN_HEIGHT = SCREEN_WIDTH + 100
 SIDES_PADDING = 10
 
 WHITE = (255, 255, 255)
-BG_COLOR = WHITE
 # back ground color constant
+BG_COLOR = WHITE
 # BGROUND_IMG = pygame.image.load("BG.jpg")
 
 # properties of buttons
-# TEXT_COLOR = (150,150,150)
 TEXT_COLOR = WHITE
 BUTTONS_COLOR = (12, 44, 130)
 BUTTON_WIDTH = SCREEN_WIDTH - (2 * SIDES_PADDING)
@@ -32,7 +32,7 @@ BUTTON_HEIGHT = 100
 FONT_SIZE1 = 50
 FONT_SIZE2 = 30
 
-# windows variables
+# windows flags
 # start_player checks if player or AI
 start_players = None
 # agent_selected store the selected agent
@@ -74,13 +74,12 @@ def start_window():
             pygame.display.update()
     pygame.quit()
 
-
 def AI_window():
     game_screen.fill(BG_COLOR)
     global pruning_selected
     buttons = []
     pruning = Button((SCREEN_WIDTH // 2) - (BUTTON_WIDTH // 2), (SCREEN_HEIGHT // 2) - (BUTTON_HEIGHT // 2) - 100,
-                     BUTTON_WIDTH, BUTTON_HEIGHT, BUTTONS_COLOR, " Alpha-Beta pruning", TEXT_COLOR, FONT_SIZE1)
+                    BUTTON_WIDTH, BUTTON_HEIGHT, BUTTONS_COLOR, " Alpha-Beta pruning", TEXT_COLOR, FONT_SIZE1)
     pruning.draw(game_screen)
     buttons.append(pruning)
     no_pruning = Button((SCREEN_WIDTH // 2) - (BUTTON_WIDTH // 2),
@@ -107,7 +106,6 @@ def AI_window():
                             return
             pygame.display.update()
     pygame.quit()
-
 
 def end_winodw(player1_score, player2_score, player1_type, player2_type):
     clear_rect = pygame.Rect(0, 0, SCREEN_WIDTH, 140)
@@ -153,41 +151,12 @@ def end_winodw(player1_score, player2_score, player1_type, player2_type):
             pygame.display.update()
 
 
+
 pygame.init()
-
-
-def message(image_name):
-    tree_screen = Tk()
-    tree_screen.title("State Tree")
-    tree_image = Image.open(image_name)
-    tkimage = ImageTk.PhotoImage(tree_image)
-    image_height = tkimage.height()
-    image_width = tkimage.width()
-
-    tree_screen.geometry(str(image_width) + "x" + str(image_height))
-    frame = Frame(tree_screen, width=image_width, height=image_height)
-    frame.pack()
-    frame.place(anchor='center', relx=0.5, rely=0.5)
-    frame.pack()
-    img = ImageTk.PhotoImage(tree_image)
-    label = Label(frame, image=img)
-    label.pack()
-    tree_screen.update()
-    tree_screen.deiconify()
-    tree_screen.mainloop()
-
-
-def tree_window(states):
-    tree = Tree(states, NUM_COL, NUM_ROW)
-    image_name = tree.png_name + '.' + tree.extension
-    # message(image_name)
-
-
 # starting the pygame screen
 game_screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 # draw the background
 game_screen.fill(BG_COLOR)
-# game_screen.blit(BGROUND_IMG,(0,0))
 # set the title
 pygame.display.set_caption("Connect 4")
 # set the logo
@@ -196,7 +165,7 @@ pygame.display.set_icon(icon)
 
 start_window()
 if start_players:
-    puzzle = Puzzle(game_screen, NUM_ROW, NUM_COL, SCREEN_WIDTH, SCREEN_HEIGHT)
+    puzzle = Puzzle(game_screen, NUM_ROW, NUM_COL, SCREEN_WIDTH, SCREEN_HEIGHT, 1)
     playing_circle = Circle(game_screen, puzzle.circles[0].x_pos, puzzle.circles[0].y_pos - puzzle.diameter - 10,
                             puzzle.player1_color, puzzle.diameter / 2)
     playing_circle.draw()
@@ -209,7 +178,7 @@ if start_players:
             if event.type == pygame.MOUSEMOTION:
                 x_hovered, y_hovered = pygame.mouse.get_pos()
                 if x_hovered > puzzle.circles[0].x_pos and x_hovered < puzzle.circles[NUM_COL - 1].x_pos:
-                    clear_rect = pygame.Rect(0, 0, SCREEN_WIDTH, 140)
+                    clear_rect = pygame.Rect(0, 30, SCREEN_WIDTH, 110)
                     pygame.draw.rect(game_screen, BG_COLOR, clear_rect)
                     playing_circle.change_pos(
                         x_hovered, puzzle.circles[0].y_pos - puzzle.diameter - 10)
@@ -233,13 +202,13 @@ if start_players:
 
 else:
     AI_window()
-    puzzle = Puzzle(game_screen, NUM_ROW, NUM_COL, SCREEN_WIDTH, SCREEN_HEIGHT)
+    puzzle = Puzzle(game_screen, NUM_ROW, NUM_COL, SCREEN_WIDTH, SCREEN_HEIGHT, 2)
     playing_circle = Circle(game_screen, puzzle.circles[0].x_pos, puzzle.circles[0].y_pos - puzzle.diameter - 10,
                             puzzle.player1_color, puzzle.diameter / 2)
     playing_circle.draw()
 
     if pruning_selected:
-        agent = PrunMinMax(4, NUM_ROW, NUM_COL)
+        agent = PrunMinMax(DEPTH, NUM_ROW, NUM_COL)
         while True:
             
             for event in pygame.event.get():
@@ -250,7 +219,7 @@ else:
                 if event.type == pygame.MOUSEMOTION:
                     x_hovered, y_hovered = pygame.mouse.get_pos()
                     if puzzle.circles[0].x_pos < x_hovered < puzzle.circles[NUM_COL - 1].x_pos:
-                        clear_rect = pygame.Rect(0, 0, SCREEN_WIDTH, 140)
+                        clear_rect = pygame.Rect(0, 30, SCREEN_WIDTH, 110)
                         pygame.draw.rect(game_screen, BG_COLOR, clear_rect)
                         playing_circle.change_pos(
                             x_hovered, puzzle.circles[0].y_pos - puzzle.diameter - 10)
@@ -262,23 +231,29 @@ else:
                     puzzle.play(x_clicked, y_clicked)
 
                 if puzzle.player_turn == puzzle.player2:
-                    playing_circle.update(
-                        puzzle.player2_color, puzzle.player_turn)
+                    playing_circle.update(puzzle.player2_color, puzzle.player_turn)
                     pygame.display.update()
+
+                    start = time()
                     ai_state, ai_col = agent.work(puzzle.current_state)
                     puzzle.play(x_clicked, y_clicked, ai_col)
+                    end = time()
                     pygame.display.update()
-                    ai_tree = agent.tree
-                    tree_window(ai_tree)
+                    print("Agent time :",end-start)
+
+                    if puzzle.create_tree:
+                        tree = Tree(agent.tree,NUM_COL, NUM_ROW)
+                        tree.save_tree(False)
+                        if puzzle.display_tree:
+                            tree.save_tree(True)
                 pygame.display.update()
 
                 if puzzle.board_is_full:
                     end_winodw(puzzle.player1_score, puzzle.player2_score,"Your", "AI")
 
     else:
-        agent = MinMax(3, NUM_ROW, NUM_COL)
+        agent = MinMax(DEPTH, NUM_ROW, NUM_COL)
         while True:
-            
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -287,7 +262,7 @@ else:
                 if event.type == pygame.MOUSEMOTION:
                     x_hovered, y_hovered = pygame.mouse.get_pos()
                     if puzzle.circles[0].x_pos < x_hovered < puzzle.circles[NUM_COL - 1].x_pos:
-                        clear_rect = pygame.Rect(0, 0, SCREEN_WIDTH, 140)
+                        clear_rect = pygame.Rect(0, 30, SCREEN_WIDTH, 110)
                         pygame.draw.rect(game_screen, BG_COLOR, clear_rect)
                         playing_circle.change_pos(
                             x_hovered, puzzle.circles[0].y_pos - puzzle.diameter - 10)
@@ -299,15 +274,21 @@ else:
                     puzzle.play(x_clicked, y_clicked)
 
                 if puzzle.player_turn == puzzle.player2:
-                    playing_circle.update(
-                        puzzle.player2_color, puzzle.player_turn)
+                    playing_circle.update(puzzle.player2_color, puzzle.player_turn)
                     pygame.display.update()
+
+                    start = time()
                     ai_state, ai_col = agent.work(puzzle.current_state)
                     puzzle.play(x_clicked, y_clicked, ai_col)
+                    end = time()
                     pygame.display.update()
-                    ai_tree = agent.tree
-                    tree_window(ai_tree)
-                pygame.display.update()
+                    print("Agent time :",end-start)
 
+                    if puzzle.create_tree:
+                        tree = Tree(agent.tree,NUM_COL, NUM_ROW)
+                        tree.save_tree(False)
+                        if puzzle.display_tree:
+                            tree.save_tree(True)
+                pygame.display.update()
                 if puzzle.board_is_full:
                     end_winodw(puzzle.player1_score, puzzle.player2_score,"Your", "AI")
