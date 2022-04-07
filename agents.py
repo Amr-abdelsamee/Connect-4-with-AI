@@ -16,20 +16,26 @@ class Agents:
         self.index = 0
         self.current_depth = 0
 
-    def calc_score(self, connected, index=0, p='1'):
+    def calc_score(self, connected, index=0, p='1', p2='-1'):
         v = 1
+        if p2 == '0':
+            f = 2
+        else:
+            f = 0.5
         if p == '1':
             v = -1
         if connected == 0:
             return 0
         if connected == 1:
             if self.num_col - index == self.num_col - self.num_col / 2:
-                return 5 * v
+                return 5 * v * f
             if 0 < index < self.num_col - 1:
-                return 3 * v
+                return 3 * v * f
             else:
-                return 1 * v
-        return pow(10, connected - 1) * v
+                return 1 * v * f
+        if connected < 4:
+            return pow(10, connected - 1) * v * f * 0.5
+        return pow(10, connected - 1) * v * f
 
     def swap(self, v):
       if v == '1':
@@ -43,12 +49,16 @@ class Agents:
         v = '1'
         for i in range(self.num_row):
             j = -1
+            connected = 0
             while j < self.num_col:
                 j += 1
                 while j < self.num_col and state[i * self.num_col + j] == v:
                     connected += 1
                     j += 1
-                points += self.calc_score(connected, j - 1,v)
+                if (j+1) < self.num_col:
+                    points += self.calc_score(connected, j - 1, v, state[i * self.num_col + (j+1)])
+                else:
+                    points += self.calc_score(connected, j - 1, v, '-1')
                 connected = 1
                 v = self.swap(v)
         return points
@@ -59,12 +69,16 @@ class Agents:
         v = '1'
         for i in range(self.num_col):
             j = -1
+            connected = 0
             while j < self.num_row:
                 j +=1
                 while j < self.num_row and state[j * self.num_col + i] == v:
                     connected += 1
                     j += 1
-                points += self.calc_score(connected, i, v)
+                if (j+1) < self.num_row:
+                    points += self.calc_score(connected, i, v, state[(j+1) * self.num_col + i])
+                else:
+                    points += self.calc_score(connected, i, v, '-1')
                 connected = 1
                 v = self.swap(v)
         return points
@@ -79,12 +93,15 @@ class Agents:
                 if state[i * self.num_col + j] == v:
                     connected += 1
                 else:
-                    points += self.calc_score(connected, j, v)
+                    if i+1 < self.num_row and j+1 < self.num_col:
+                        points += self.calc_score(connected, j, v, state[(i+1) * self.num_col + (j+1)])
+                    else:
+                        points += self.calc_score(connected, j - 1, v, '-1')
                     connected = 1
                     v = self.swap(v)
                 j += 1
                 i += 1
-            points += self.calc_score(connected, j - 1, v)
+            points += self.calc_score(connected, j - 1, v, '-1')
             connected = 0
 
         for i in range(self.num_row):
@@ -94,12 +111,15 @@ class Agents:
                 if state[i * self.num_col + j] == v:
                     connected += 1
                 else:
-                    points += self.calc_score(connected, j, v)
+                    if i+1 < self.num_row and j+1 < self.num_col:
+                        points += self.calc_score(connected, j, v, state[(i+1) * self.num_col + (j+1)])
+                    else:
+                        points += self.calc_score(connected, j - 1, v, '-1')
                     connected = 1
                     v = self.swap(v)
                 j += 1
                 i += 1
-            points += self.calc_score(connected, j - 1, v)
+            points += self.calc_score(connected, j - 1, v, '-1')
             connected = 0
         return points
 
@@ -113,12 +133,15 @@ class Agents:
                 if state[i * self.num_col + j] == v:
                     connected += 1
                 else:
-                    points += self.calc_score(connected, j, v)
+                    if i+1 < self.num_row and j-1 > -1:
+                        points += self.calc_score(connected, j, v, state[(i+1) * self.num_col + (j-1)])
+                    else:
+                        points += self.calc_score(connected, j + 1, v, '-1')
                     connected = 1
                     v = self.swap(v)
                 j -= 1
                 i += 1
-            points += self.calc_score(connected, j + 1, v)
+            points += self.calc_score(connected, j + 1, v, '-1')
             connected = 0
 
         for i in range(self.num_row):
@@ -128,12 +151,15 @@ class Agents:
                 if state[i * self.num_col + j] == v:
                     connected += 1
                 else:
-                    points += self.calc_score(connected, j, v)
+                    if i+1 < self.num_row and j-1 > -1:
+                        points += self.calc_score(connected, j, v, state[(i+1) * self.num_col + (j-1)])
+                    else:
+                        points += self.calc_score(connected, j + 1, v, '-1')
                     connected = 1
                     v = self.swap(v)
                 j -= 1
                 i += 1
-            points += self.calc_score(connected, j + 1, v)
+            points += self.calc_score(connected, j + 1, v, '-1')
             connected = 0
         return points
 
@@ -202,12 +228,9 @@ class MinMax(Agents):
             return None, 0, self.heu(state), -1
         max_child, max_column, max_utility = None, 0, float('-inf')
         children = self.get_next_states(state, True)
-        self.index += len(children)
-        index = self.index
         for child, column in children:
-            _, _, utility,i = self.minimize(child, d + 1, index)
+            _, _, utility,i = self.minimize(child, d + 1)
             node = (i, column, utility, 'minGate')
-            index -= 1
             gp.append(node)
             if utility > max_utility:
                 max_child, max_column, max_utility = child, column, utility
@@ -221,13 +244,9 @@ class MinMax(Agents):
             return None, 0, self.heu(state), -1
         min_child, min_column, min_utility = None, 0, float('inf')
         children = self.get_next_states(state, False)
-        self.index += len(children)
-        index = self.index
-        i = len(children)
         for child, column in children:
-            _, _, utility, i = self.maximize(child, d + 1, index)
+            _, _, utility, i = self.maximize(child, d + 1)
             node = (i, column, utility, 'maxGate')
-            index -= 1
             gp.append(node)
             if utility < min_utility:
                 min_child, min_column, min_utility = child, column, utility
@@ -236,7 +255,7 @@ class MinMax(Agents):
         return min_child, min_column, min_utility, len(self.tree)-1
 
     def decision(self):
-        child, column, utility, i = self.maximize(self.state, 0, 0)
+        child, column, utility, i = self.maximize(self.state, 0)
         return child, column, utility, i
 
     def work(self, state):

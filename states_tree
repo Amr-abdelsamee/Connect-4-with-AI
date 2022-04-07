@@ -1,10 +1,10 @@
 digraph {
 	node [shape=box];
-	"(0, 4, inf, 'maxgate')"	[label="maxgate
+	"(0, 6, inf, 'maxgate')"	[label="maxgate
 inf
-4"];
-	"(-1, 4, inf, 'minGate')"	[label="minGate
+6"];
+	"(-1, 6, inf, 'minGate')"	[label="minGate
 inf
-4"];
-	"(0, 4, inf, 'maxgate')" -> "(-1, 4, inf, 'minGate')";
+6"];
+	"(0, 6, inf, 'maxgate')" -> "(-1, 6, inf, 'minGate')";
 }

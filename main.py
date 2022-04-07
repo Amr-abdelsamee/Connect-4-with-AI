@@ -164,7 +164,7 @@ if start_players:
 
             if event.type == pygame.MOUSEMOTION:
                 x_hovered, y_hovered = pygame.mouse.get_pos()
-                if x_hovered > puzzle.circles[0].x_pos and x_hovered < puzzle.circles[NUM_COL - 1].x_pos:
+                if puzzle.circles[0].x_pos < x_hovered < puzzle.circles[NUM_COL - 1].x_pos:
                     clear_rect = pygame.Rect(0, 0, SCREEN_WIDTH, 140)
                     pygame.draw.rect(game_screen, BG_COLOR, clear_rect)
                     playing_circle.change_pos(
@@ -223,7 +223,7 @@ else:
                     tree_window(ai_tree)
                 pygame.display.update()
     else:
-        agent = MinMax(3, NUM_ROW, NUM_COL)
+        agent = MinMax(4, NUM_ROW, NUM_COL)
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
