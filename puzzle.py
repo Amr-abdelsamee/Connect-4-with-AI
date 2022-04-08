@@ -22,44 +22,45 @@ class Puzzle:
         self.screen = screen
         self.screen_width = screen_width
         self.screen_height = screen_height
-
-        self.game_mode = game_mode
         self.num_row = num_row
         self.num_col = num_col
-        self.circles = []  # array of obj
-        self.playable = []  # array of ints
-        self.occupied = []  # array of ints
-        self.states = []
-        self.board_is_full = False
+
+        self.circles = []   # array of obj
+        self.playable = []  # array of ints used to drop the pieces
+        self.occupied = []  # array of ints used to check if board if full
+        self.states = [] # array of strs contain the histry of plays
+        self.board_is_full = False # called in the main to display the final score window
         
-        
-        self.current_state = '0' * (self.num_row * self.num_col)
+        self.current_state = '0' * (self.num_row * self.num_col) # initial state of the board
         self.states.append(self.current_state)
 
+        self.diameter = ((self.screen_width - (2 * SIDES_PADDING)) - ((self.num_col - 1) * INBTWN_SPACE)) / self.num_col
         self.player1 = '1'
         self.player2 = '2'
         self.player1_color = PLAYER1_COLOR
         self.player2_color = PLAYER2_COLOR
         self.player1_score = 0
         self.player2_score = 0
-        self.player_turn = '1'
+        self.player_turn = '1' # player 1 plays first 
 
+        self.game_mode = game_mode # 1 if player Vs player ,2 if player Vs AI
         if self.game_mode == 2:
+            # tree control buttons displayed only in the AI board
             self.create_tree_button = None
             self.display_tree_button = None
             self.create_tree = True
             self.display_tree = True
 
-
-        # calculate the block width and height depending on the screen width and height
-        self.diameter = ((self.screen_width - (2 * SIDES_PADDING)) - ((self.num_col - 1) * INBTWN_SPACE)) / self.num_col
-
         self.create_circles()
         self.generate_playable()
 
-    # create_rects creates the blocks of the game
+
+    # create_circles creates the circle of the game
     def create_circles(self):
-        # initial cordinates of the first block
+        """creare_circles used to create the game circles. 
+        It fills self.circles with objects from the class Circle in circles.py file
+        """
+        # initial cordinates of the first circle
         x = SIDES_PADDING + self.diameter / 2
         y = UPPER_PADDING + self.diameter / 2
 
@@ -84,7 +85,11 @@ class Puzzle:
             x = SIDES_PADDING + self.diameter / 2
             y = y + self.diameter + INBTWN_SPACE
 
+
     def generate_playable(self):
+        """It is used to fill self.playable with arrays each index of array represent a column
+        each array contain the indexes that can be used to insert a circle in in that column
+        """
         temp = []
         for i in range(self.num_col):
             inc = i
@@ -94,7 +99,18 @@ class Puzzle:
             self.playable.append(copy(temp))
             temp.clear()
 
+
     def get_col_clicked(self, x_clicked, y_clicked):
+        """It's used to get the index of the clicked column
+        if the clicked position was not a column it returns None
+
+        Args:
+            x_clicked (int): the x coordinates of the clicked position
+            y_clicked (int): the y coordinates of the clicked position
+
+        Returns:
+            i (int): the index of the column
+        """
         last_circle_index = (self.num_col * self.num_row) - 1
         y_end = self.circles[last_circle_index].y_pos + (self.diameter / 2)
         for i in range(self.num_col):
@@ -105,8 +121,25 @@ class Puzzle:
                     and y_start <= y_clicked < y_end):
                 return i
 
-    def drop_piece(self, x_clicked, y_clicked, color, owner, col=-1):
 
+    def drop_piece(self, x_clicked, y_clicked, color, owner, col=-1):
+        """ It's used to drop the played piece in its position which is represented by 
+            the column index.
+            self.playable is used here to pop the max index in the clicked column 
+            this index is the place of the dropped piece
+
+        Args:
+            x_clicked (int): the x coordinates of the clicked position
+            y_clicked (int): the y coordinates of the clicked position
+            color (tuple): color of the owner ,RGB value
+            owner (str): indicate the wwho played this piece
+            col (int): default value is -1 if player turn other wise it's sent from the AI agent
+
+        Returns:
+            
+            (bool): in case of player's turn it returns true to confirm the piece is dropped , false if column is full
+        """
+        
         col_index = self.get_col_clicked(x_clicked, y_clicked)
         if col != -1:
             col_index = col
@@ -121,13 +154,31 @@ class Puzzle:
             else:
                 return False
 
+
     def update_state(self, index, player):
+        """ It's used to update the state of the board
+
+        Args:
+            index (int): the index of the droped 
+            player (str): the player who played last piece
+        """
+        print(type(player))
         self.current_state = list(self.current_state)
         self.current_state[index] = player
         self.current_state = "".join(self.current_state)
         self.states.append(self.current_state)
 
+
     def check_horiz(self, state, p):
+        """used to calculate the piece of the player horizontally
+
+        Args:
+            state (str): the current state of the board
+            p (str): the player
+
+        Returns:
+            points (int): points of the player from the horizontal calculations
+        """
         points = 0
         connected = 0
         for i in range(self.num_row):
@@ -142,7 +193,17 @@ class Puzzle:
                 connected = 0
         return points
 
+
     def check_vert(self, state, p):
+        """used to calculate the piece of the player vertically
+
+        Args:
+            state (str): the current state of the board
+            p (str): the player
+
+        Returns:
+            points (int): points of the player from the vertical calculations
+        """
         points = 0
         connected = 0
         for i in range(self.num_col):
@@ -157,7 +218,17 @@ class Puzzle:
                 connected = 0
         return points
 
+
     def check_ldiag(self, state, p):
+        """used to calculate the piece of the player in left diagonals
+
+        Args:
+            state (str): the current state of the board
+            p (str): the player
+
+        Returns:
+            points (int): points of the player from the left diagonals calculations
+        """
         points = 0
         connected = 0
         for i in range(self.num_row):
@@ -193,7 +264,17 @@ class Puzzle:
             connected = 0
         return points
 
+
     def check_rdiag(self, state, p):
+        """used to calculate the piece of the player in right diagonals
+
+        Args:
+            state (str): the current state of the board
+            p (str): the player
+
+        Returns:
+            points (int): points of the player from the right diagonals calculations
+        """
         points = 0
         connected = 0
         for i in range(self.num_row):
@@ -228,19 +309,34 @@ class Puzzle:
             connected = 0
         return points
 
+
     def get_final_score(self, state, player):
+        """used to calculate the total score of the player
+
+        Args:
+            state (str): the current state of the board
+            player (str): the player
+
+        Returns:
+            points (int): total points of the player
+        """
         points = 0
         points += self.check_horiz(state, player)
-        # print('horiz', points)
         points += self.check_vert(state, player)
-        # print('vert', points)
         points += self.check_ldiag(state, player)
-        # print('ldiag', points)
         points += self.check_rdiag(state, player)
-        # print('rdiag', points)
         return points
 
+
     def play(self, x_clicked, y_clicked, col=-1):
+        """the start method which called in main.py 
+            it's called whenever a player or an AI plays
+
+        Args:
+            x_clicked (int): the x coordinates of the clicked position
+            y_clicked (int): the y coordinates of the clicked position
+            col (int, optional): default value is -1 if player turn other wise it's sent from the AI agent
+        """
         if self.player_turn == self.player1:
             switch_player = self.drop_piece(x_clicked, y_clicked, self.player1_color, self.player_turn, col)
             if switch_player:
@@ -250,6 +346,7 @@ class Puzzle:
             if switch_player:
                 self.player_turn = self.player1
         
+        # buttons that controlls the tree it is displayed only in the AI board
         if self.game_mode == 2 :
             if self.create_tree_button.check_clicked(x_clicked, y_clicked):
                 if self.create_tree:
@@ -274,6 +371,7 @@ class Puzzle:
                     self.display_tree_button.draw(self.screen)
                     self.display_tree = True
 
+        # check if the board is full to calculate the final score of each player
         if len(self.occupied) == self.num_col*self.num_row:
             self.player1_score = self.get_final_score(self.current_state, '1')
             self.player2_score = self.get_final_score(self.current_state, '2')
