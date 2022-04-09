@@ -301,7 +301,6 @@ else:
                     end = time()
                     pygame.display.update()
                     print("Agent time :", end - start)
-                    print(agent.tree)
 
                     if puzzle.create_tree:
                         tree = Tree(agent.tree, NUM_COL, NUM_ROW)
