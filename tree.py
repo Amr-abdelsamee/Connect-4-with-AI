@@ -16,11 +16,11 @@ class Tree:
         self.graph.attr('node', shape='box')
         for i in range(tree_len):
             self.graph.node(str(self.tree[i][0]),
-                            str(self.tree[i][0][3]) + '\n' + str(self.tree[i][0][2]) + '\n' + str(self.tree[i][0][1]))
+                            str(self.tree[i][0][4]) + '\n' + str(self.tree[i][0][3]) + '\n' + str(self.tree[i][0][2]))
             for j in range(len(self.tree[i][1])):
                 self.graph.node(str(self.tree[i][1][j]),
-                                str(self.tree[i][1][j][3]) + '\n' + str(self.tree[i][1][j][2]) + '\n' + str(
-                                    self.tree[i][1][j][1]))
+                                str(self.tree[i][1][j][4]) + '\n' + str(self.tree[i][1][j][3]) + '\n' + str(
+                                    self.tree[i][1][j][2]))
                 self.graph.edge(str(self.tree[i][0]), str(self.tree[i][1][j]))
 
     def save_tree(self, display):
