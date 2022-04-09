@@ -6,6 +6,7 @@ class Agents:
         self.tree = []
         self.state = ''
         self.depth = depth
+        self.index = 0
 
     # Update the Agent State and clear the Tree to run again
     def update(self, state):
@@ -231,9 +232,12 @@ class MinMax(Agents):
             return None, 0, self.heu(state), -1
         max_child, max_column, max_utility = None, 0, float('-inf')
         children = self.get_next_states(state, True)
+        self.index += len(children)
+        index = self.index
         for child, column in children:
             _, _, utility, i = self.minimize(child, d + 1)
-            node = (i, column, utility, 'minGate')
+            node = (i, index, column, utility, 'minGate')
+            index -= 1
             gp.append(node)
             if utility > max_utility:
                 max_child, max_column, max_utility = child, column, utility
@@ -248,9 +252,12 @@ class MinMax(Agents):
             return None, 0, self.heu(state), -1
         min_child, min_column, min_utility = None, 0, float('inf')
         children = self.get_next_states(state, False)
+        self.index += len(children)
+        index = self.index
         for child, column in children:
             _, _, utility, i = self.maximize(child, d + 1)
-            node = (i, column, utility, 'maxGate')
+            node = (i, index, column, utility, 'maxGate')
+            index -= 1
             gp.append(node)
             if utility < min_utility:
                 min_child, min_column, min_utility = child, column, utility
@@ -280,9 +287,12 @@ class PrunMinMax(Agents):
             return None, 0, self.heu(state), -1
         max_child, max_column, max_utility = None, 0, float('-inf')
         children = self.get_next_states(state, True)
+        self.index += len(children)
+        index = self.index
         for child, column in children:
             _, _, utility, i = self.minimize(child, d + 1, alpha, beta)
-            node = (i, column, utility, 'minGate')
+            node = (i, index, column, utility, 'minGate')
+            index -= 1
             gp.append(node)
             if utility > max_utility:
                 max_child, max_column, max_utility = child, column, utility
@@ -301,9 +311,12 @@ class PrunMinMax(Agents):
             return None, 0, self.heu(state), -1
         min_child, min_column, min_utility = None, 0, float('inf')
         children = self.get_next_states(state, False)
+        self.index += len(children)
+        index = self.index
         for child, column in children:
             _, _, utility, i = self.maximize(child, d + 1, alpha, beta)
-            node = (i, column, utility, 'maxGate')
+            node = (i, index, column, utility, 'maxGate')
+            index -= 1
             gp.append(node)
             if utility < min_utility:
                 min_child, min_column, min_utility = child, column, utility
