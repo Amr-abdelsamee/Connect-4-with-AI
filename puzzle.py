@@ -55,7 +55,7 @@ class Puzzle:
         self.generate_playable()
 
 
-    # create_circles creates the circle of the game
+#0
     def create_circles(self):
         """creare_circles used to create the game circles. 
         It fills self.circles with objects from the class Circle in circles.py file
@@ -85,7 +85,7 @@ class Puzzle:
             x = SIDES_PADDING + self.diameter / 2
             y = y + self.diameter + INBTWN_SPACE
 
-
+#0
     def generate_playable(self):
         """It is used to fill self.playable with arrays each index of array represent a column
         each array contain the indexes that can be used to insert a circle in in that column
@@ -99,7 +99,7 @@ class Puzzle:
             self.playable.append(copy(temp))
             temp.clear()
 
-
+#3
     def get_col_clicked(self, x_clicked, y_clicked):
         """It's used to get the index of the clicked column
         if the clicked position was not a column it returns None
@@ -121,7 +121,7 @@ class Puzzle:
                     and y_start <= y_clicked < y_end):
                 return i
 
-
+#2
     def drop_piece(self, x_clicked, y_clicked, color, owner, col=-1):
         """ It's used to drop the played piece in its position which is represented by 
             the column index.
@@ -154,7 +154,7 @@ class Puzzle:
             else:
                 return False
 
-
+#4
     def update_state(self, index, player):
         """ It's used to update the state of the board
 
@@ -162,7 +162,6 @@ class Puzzle:
             index (int): the index of the droped 
             player (str): the player who played last piece
         """
-        print(type(player))
         self.current_state = list(self.current_state)
         self.current_state[index] = player
         self.current_state = "".join(self.current_state)
@@ -327,7 +326,7 @@ class Puzzle:
         points += self.check_rdiag(state, player)
         return points
 
-
+#1
     def play(self, x_clicked, y_clicked, col=-1):
         """the start method which called in main.py 
             it's called whenever a player or an AI plays
