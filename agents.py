@@ -6,13 +6,13 @@ class Agents:
         self.tree = []
         self.state = ''
         self.depth = depth
-        self.index = 0
+        self.index = 1
 
     # Update the Agent State and clear the Tree to run again
     def update(self, state):
         self.state = state
         self.tree.clear()
-        self.index = 0
+        self.index = 1
 
     # Calculating points to be sent to heuristic function
     def calc_score(self, connected, index=0, p='1', p2='-1'):
@@ -275,7 +275,7 @@ class MinMax(Agents):
     def work(self, state):
         self.update(state)
         newState, column, utility, i = self.decision()
-        self.tree.append((i, column, utility, 'maxgate'))
+        self.tree.append((i, 0, column, utility, 'maxgate'))
         self.tree = self.create_tree()
         return newState, column
 
@@ -338,6 +338,6 @@ class PrunMinMax(Agents):
     def work(self, state):
         self.update(state)
         newState, column, utility, i = self.decision()
-        self.tree.append((i, column, utility, 'maxgate'))
+        self.tree.append((i, 0, column, utility, 'maxgate'))
         self.tree = self.create_tree()
         return newState, column
