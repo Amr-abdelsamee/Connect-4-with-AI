@@ -12,6 +12,7 @@ class Agents:
     def update(self, state):
         self.state = state
         self.tree.clear()
+        self.index = 0
 
     # Calculating points to be sent to heuristic function
     def calc_score(self, connected, index=0, p='1', p2='-1'):
